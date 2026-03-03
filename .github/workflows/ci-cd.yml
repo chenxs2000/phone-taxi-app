@@ -112,7 +112,7 @@ jobs:
     needs: unit-tests
     services:
       mongodb:
-        image: mongo:${{ env.MONGODB_VERSION }}
+        image: mongo:7.0
         ports:
           - 27017:27017
         options: >-
@@ -121,12 +121,12 @@ jobs:
           --password password123
 
       redis:
-        image: redis:${{ env.REDIS_VERSION }}
+        image: redis:7-alpine
         ports:
           - 6379:6379
 
       rabbitmq:
-        image: rabbitmq:${{ env.RABBITMQ_VERSION }}
+        image: rabbitmq:3.12-management
         ports:
           - 5672:5672
           - 15672:15672
