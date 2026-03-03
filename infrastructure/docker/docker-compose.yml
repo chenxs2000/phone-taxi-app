@@ -1,0 +1,173 @@
+version: '3.8'
+
+services:
+  # MongoDB 数据库
+  mongodb:
+    image: mongo:7.0
+    container_name: phone-taxi-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: phone-taxi-app
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: phone-taxi-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --save --appendonly yes
+
+  # RabbitMQ 消息队列
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: phone-taxi-rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: password123
+      RABBITMQ_DEFAULT_VHOST: /
+      RABBITMQ_DEFAULT_PASS: admin:password123
+
+  # 用户服务
+  user-service:
+    build:
+      context: ./services/user-service
+      dockerfile: Dockerfile
+    container_name: phone-taxi-user-service
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - MONGODB_URI=mongodb://mongodb:27017/phone-taxi-app
+      - JWT_SECRET=phone-taxi-app-secret-key
+      - JWT_EXPIRES_IN=7d
+    depends_on:
+      - mongodb
+      - redis
+    volumes:
+      - ./services/user-service:/app
+      - /usr/src/app/node_modules:/node_modules
+
+  # 订单服务
+  order-service:
+    build:
+      context: ./services/order-service
+      dockerfile: Dockerfile
+    container_name: phone-taxi-order-service
+    restart: always
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+      - MONGODB_URI=mongodb://mongodb:27017/phone-taxi-app
+      - JWT_SECRET=phone-taxi-app-secret-key
+      - JWT_EXPIRES_IN=7d
+      - USER_SERVICE_URL=http://user-service:3001
+      - ORDER_SERVICE_URL=http://order-service:3002
+      - DISPATCH_SERVICE_URL=http://dispatch-service:3003
+      - PAYMENT_SERVICE_URL=http://payment-service:3004
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3005
+      - STATISTICS_SERVICE_URL=http://statistics-service:3006
+    depends_on:
+      - mongodb
+      - redis
+      - rabbitmq
+    volumes:
+      - ./services/order-service:/app
+      - /usr/src/app/node_modules:/node_modules
+
+  # 派单服务
+  dispatch-service:
+    build:
+      context: ./services/dispatch-service
+      dockerfile: Dockerfile
+    container_name: phone-taxi-dispatch-service
+    restart: always
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
+      - MONGODB_URI=mongodb://mongodb:27017/phone-taxi-app
+      - JWT_SECRET=phone-taxi-app-secret-key
+      - JWT_EXPIRES_IN=7d
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - mongodb
+      - redis
+      - rabbitmq
+    volumes:
+      - ./services/dispatch-service:/app
+      - /usr/src/app/node_modules:/node_modules
+
+  # 支付服务
+  payment-service:
+    build:
+      context: ./services/payment-service
+      dockerfile: Dockerfile
+    container_name: phone-taxi-payment-service
+    restart: always
+    ports:
+      - "3004:3004"
+    environment:
+      - NODE_ENV=development
+      - PORT=3004
+      - MONGODB_URI=mongodb://mongodb:27017/phone-taxi-app
+      - JWT_SECRET=phone-taxi-app-secret-key
+      - JWT_EXPIRES_IN=7d
+    depends_on:
+      - mongodb
+    - redis
+    - rabbitmq
+    volumes:
+      - ./services/payment-service:/app
+      - /usr/src/app/node_modules:/node_modules
+
+  # API网关
+  api-gateway:
+    build:
+      context: ./infrastructure/api-gateway
+      dockerfile: Dockerfile
+    container_name: phone-taxi-api-gateway
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - USER_SERVICE_URL=http://user-service:3001
+      ORDER_SERVICE_URL=http://order-service:3002
+      DISPATCH_SERVICE_URL=http://dispatch-service:3003
+      PAYMENT_SERVICE_URL=http://payment-service:3004
+      NOTIFICATION_SERVICE_URL=http://notification-service:3005
+      STATISTICS_SERVICE_URL=http://statistics-service:3006
+      JWT_SECRET=phone-taxi-app-secret-key
+      JWT_EXPIRES_IN=7d
+      depends_on:
+      - mongodb
+      - redis
+      rabbitmq
+    volumes:
+      - ./infrastructure/api-gateway:/app
+      - /usr/src/app/node_modules:/node_modules
+
+volumes:
+  mongodb_data:
+
+networks:
+  default:
+    driver: bridge

@@ -1,0 +1,175 @@
+# Phone Taxi App 性能测试配置
+# 使用 Artillery 进行负载测试
+
+config:
+  target: ${{ API_URL || 'http://localhost:3000/api' }}
+  phases:
+    - name: 暖身阶段
+      duration: 60
+      arrivalRate: 10
+      maxVusers: 50
+    - name: 负载阶段 1
+      duration: 300
+      arrivalRate: 50
+      maxVusers: 500
+    - name: 负载阶段 2
+      duration: 300
+      arrivalRate: 100
+      maxVusers: 1000
+    - name: 压力阶段
+      duration: 120
+      arrivalRate: 200
+      maxVusers: 2000
+
+scenarios:
+  - name: 健康检查测试
+    flow:
+      - get:
+          url: /health
+          method: GET
+          expectedStatusCode: 200
+
+  - name: API 网关根路径测试
+    flow:
+      - get_root:
+          url: /
+          method: GET
+          expectedStatusCode: 200
+
+  - name: 用户服务测试
+    flow:
+      - user_register:
+          url: /api/v1/user/register
+          method: POST
+          json:
+            phone: '13800138000'
+            verifyCode: '123456'
+            password: 'password123'
+            name: '测试用户'
+            userType: 1
+          capture:
+            - json: '$.data.userId'
+      - user_login:
+          url: /api/v1/user/login
+          method: POST
+          json:
+            phone: '13800138001'
+            password: 'password123'
+            userType: 1
+          capture:
+            - json: '$.data.accessToken'
+
+  - name: 订单服务测试
+    flow:
+      - create_order:
+          url: /api/v1/order/create
+          method: POST
+          headers:
+            Authorization: 'Bearer {{ $accessToken }}'
+          json:
+            userId: 'test-user-123'
+            orderType: 1
+            carType: 1
+            pickup:
+              lat: 39.915
+              lng: 116.404
+              address: '北京市朝阳区'
+            destination:
+              lat: 40.015
+              lng: 116.504
+              address: '北京市海淀区'
+            passengerCount: 1
+          capture:
+            - json: '$.data.orderId'
+      - get_orders:
+          url: /api/v1/order/orders
+          method: GET
+          headers:
+            Authorization: 'Bearer {{ $accessToken }}'
+          qs:
+            userId: 'test-user-123'
+          capture:
+            - json: '$.data.list'
+
+  - name: 混合场景测试
+    flow:
+      - complete_booking_flow:
+          - user_login:
+              name: 用户登录
+              url: /api/v1/user/login
+              method: POST
+              json:
+                phone: '13800138002'
+                password: 'password123'
+                userType: 1
+              capture:
+                - json: '$.data.accessToken as userToken'
+
+          - create_order:
+              name: 创建订单
+              url: /api/v1/order/create
+              method: POST
+              headers:
+                Authorization: 'Bearer {{ userToken }}'
+              json:
+                userId: 'test-user-456'
+                orderType: 1
+                carType: 1
+                pickup:
+                  lat: 39.915
+                  lng: 116.404
+                  address: '北京市朝阳区'
+                destination:
+                  lat: 40.015
+                  lng: 116.504
+                  address: '北京市海淀区'
+                passengerCount: 1
+              think: 5
+
+          - get_order_detail:
+              name: 获取订单详情
+              url: /api/v1/order/{{ orderId }}'
+              method: GET
+              headers:
+                Authorization: 'Bearer {{ userToken }}'
+              capture:
+                - json: '$.data.orderId as orderId'
+              think: 3
+
+metrics:
+  - name: 响应时间百分位数
+    percentile: [50, 90, 95, 99]
+
+  - name: 错误率
+    error: responseTime > 3000
+
+  - name: 吞吐量
+    name: RPS (每秒请求数)
+    unit: count
+  - name: 资源使用
+    name: Memory Usage
+    unit: bytes
+    name: CPU Usage
+    unit: percentage
+
+processor:
+  name: Artillery 自定义处理器
+  config:
+    # 不在控制台输出详细日志
+    noSummary: false
+
+  beforePhase: |
+    console.log('开始阶段：{{ $phase.name }}');
+    console.log('用户数：{{ $maxVusers }}');
+    console.log('持续时长：{{ $duration }}秒');
+
+  afterPhase: |
+    console.log('阶段 {{ $phase.name }} 完成');
+    console.log('生成报告...');
+
+  afterScenario: |
+    console.log('场景 {{ $scenario.name }} 完成');
+
+  request: |
+    console.log('发送请求到：{{ request.url }}');
+    console.log('响应时间：{{ response.timings.firstByte }}ms');

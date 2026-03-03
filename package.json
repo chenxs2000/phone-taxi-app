@@ -1,0 +1,42 @@
+{
+  "name": "phone-taxi-app",
+  "version": "1.0.0",
+  "description": "Phone-based taxi booking system",
+  "private": true,
+  "workspaces": [
+    "services/*",
+    "apps/*",
+    "infrastructure/api-gateway",
+    "shared/*"
+  ],
+  "scripts": {
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "test": "npm run test --workspaces",
+    "test:coverage": "npm run test --workspaces -- --coverage",
+    "test:integration": "jest --config=tests/jest.config.js --runInBand",
+    "test:e2e": "npm run test:integration",
+    "build": "npm run build --workspaces",
+    "docker:up": "docker-compose -f infrastructure/docker/docker-compose.yml up -d",
+    "docker:down": "docker-compose -f infrastructure/docker/docker-compose.yml down",
+    "docker:logs": "docker-compose -f infrastructure/docker/docker-compose.yml logs -f"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.2",
+    "prettier": "^3.2.5",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "author": "",
+  "license": "MIT"
+}

@@ -1,0 +1,22 @@
+# compiled output
+/dist
+/node_modules
+*.log
+
+# environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# coverage
+coverage

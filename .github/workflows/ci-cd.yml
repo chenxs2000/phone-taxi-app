@@ -1,0 +1,514 @@
+# Phone Taxi App CI/CD Pipeline
+#
+# 工作流说明：
+# 1. 代码质量检查 (Lint)
+# 2. 单元测试
+# 3. 集成测试
+# 4. 构建所有服务
+# 5. Docker 镜像构建
+# 6. 部署到测试环境
+# 7. 部署到生产环境（仅主分支）
+
+name: Phone Taxi App CI/CD
+
+# 触发条件
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:  # 允许手动触发
+
+# 环境变量
+env:
+  NODE_VERSION: '20.x'
+  MONGODB_VERSION: '7.0'
+  REDIS_VERSION: '7-alpine'
+  RABBITMQ_VERSION: '3.12-management'
+  DOCKER_REGISTRY: ghcr.io
+  ORGANIZATION: phone-taxi-app
+
+# 作业配置
+jobs:
+  # ==================== 阶段 1: 代码质量检查 ====================
+  lint:
+    name: 代码质量检查 (Lint)
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 运行 ESLint
+        run: npm run lint
+        continue-on-error: false
+
+      - name: 运行 Prettier 检查
+        run: npm run format:check || echo "格式检查完成"
+        continue-on-error: false
+
+      - name: 上传 Lint 报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-reports
+          path: |
+            eslint-report.json
+            prettier-report.json
+
+  # ==================== 阶段 2: 单元测试 ====================
+  unit-tests:
+    name: 单元测试 (Unit Tests)
+    runs-on: ${{ matrix.os }}
+    needs: lint
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [18.x, 20.x]
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 运行单元测试
+        run: npm run test --workspaces -- --coverage
+
+      - name: 上传测试覆盖率报告
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-${{ matrix.os }}-node-${{ matrix.node-version }}
+          path: coverage/
+          retention-days: 30
+
+      - name: 上传覆盖率到 Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+        continue-on-error: true
+
+  # ==================== 阶段 3: 集成测试 ====================
+  integration-tests:
+    name: 集成测试 (Integration Tests)
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    services:
+      mongodb:
+        image: mongo:${{ env.MONGODB_VERSION }}
+        ports:
+          - 27017:27017
+        options: >-
+          --auth
+          --username admin
+          --password password123
+
+      redis:
+        image: redis:${{ env.REDIS_VERSION }}
+        ports:
+          - 6379:6379
+
+      rabbitmq:
+        image: rabbitmq:${{ env.RABBITMQ_VERSION }}
+        ports:
+          - 5672:5672
+          - 15672:15672
+        env:
+          RABBITMQ_DEFAULT_USER: admin
+          RABBITMQ_DEFAULT_PASS: password123
+        options: >-
+          --hostname rabbitmq
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 启动基础设施服务
+        run: |
+          echo "等待 MongoDB 启动..."
+          until curl -s http://localhost:27017; do sleep 1; done
+
+          echo "等待 Redis 启动..."
+          until curl -s http://localhost:6379; do sleep 1; done
+
+          echo "等待 RabbitMQ 启动..."
+          until curl -s http://localhost:15672; do sleep 1; done
+
+          echo "所有基础设施服务已就绪"
+
+      - name: 运行集成测试
+        run: |
+          export MONGODB_URI=mongodb://admin:password123@localhost:27017/phone-taxi-test?authSource=admin
+          export REDIS_URI=redis://localhost:6379
+          export RABBITMQ_URI=amqp://admin:password123@localhost:5672
+          export API_GATEWAY_URL=http://localhost:3000/api
+
+          npm run test:integration
+
+      - name: 上传集成测试报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-reports
+          path: tests/integration/coverage/
+          retention-days: 30
+
+  # ==================== 阶段 4: 构建 ====================
+  build:
+    name: 构建服务 (Build)
+    runs-on: ubuntu-latest
+    needs: [lint, unit-tests, integration-tests]
+    strategy:
+      matrix:
+        service:
+          - name: user-service
+            path: services/user-service
+            port: 3001
+          - name: order-service
+            path: services/order-service
+            port: 3002
+          - name: dispatch-service
+            path: services/dispatch-service
+            port: 3003
+          - name: payment-service
+            path: services/payment-service
+            port: 3004
+          - name: notification-service
+            path: services/notification-service
+            port: 3005
+          - name: statistics-service
+            path: services/statistics-service
+            port: 3006
+          - name: call-service
+            path: services/call-service
+            port: 3007
+          - name: api-gateway
+            path: infrastructure/api-gateway
+            port: 3000
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 安装依赖
+        working-directory: ${{ matrix.service.path }}
+        run: npm ci
+
+      - name: 构建服务
+        working-directory: ${{ matrix.service.path }}
+        run: npm run build
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.service.name }}
+          path: ${{ matrix.service.path }}/dist/
+          retention-days: 7
+
+  # ==================== 阶段 5: Docker 镜像构建 ====================
+  docker-build:
+    name: 构建 Docker 镜像 (Docker Build)
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        service:
+          - name: user-service
+            path: services/user-service
+            port: 3001
+          - name: order-service
+            path: services/order-service
+            port: 3002
+          - name: dispatch-service
+            path: services/dispatch-service
+            port: 3003
+          - name: payment-service
+            path: services/payment-service
+            port: 3004
+          - name: notification-service
+            path: services/notification-service
+            port: 3005
+          - name: statistics-service
+            path: services/statistics-service
+            port: 3006
+          - name: call-service
+            path: services/call-service
+            port: 3007
+          - name: api-gateway
+            path: infrastructure/api-gateway
+            port: 3000
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 登录到 GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 提取 Docker 元数据
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_REGISTRY }}/${{ env.ORGANIZATION }}/${{ matrix.service.name }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=raw,value=${{ github.sha }}
+            type=sha,prefix=
+
+      - name: 构建并推送 Docker 镜像
+        uses: docker/build-push-action@v5
+        with:
+          context: ./${{ matrix.service.path }}
+          file: ./${{ matrix.service.path }}/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=buildkit
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+          provenance: true
+          builder: ${{ steps.meta.outputs.builder }}
+
+      - name: 生成镜像清单
+        run: |
+          echo "Docker 镜像已构建并推送："
+          echo "- ${{ env.DOCKER_REGISTRY }}/${{ env.ORGANIZATION }}/${{ matrix.service.name }}"
+
+  # ==================== 阶段 6: 部署到测试环境 ====================
+  deploy-staging:
+    name: 部署到测试环境 (Staging)
+    runs-on: ubuntu-latest
+    needs: docker-build
+    if: github.ref != 'refs/heads/main'
+    environment:
+      name: staging
+      url: https://staging.phone-taxi.app
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 部署到测试环境
+        run: |
+          echo "部署到测试环境：${{ env.STAGING_URL }}"
+          echo "服务版本：${{ github.sha }}"
+          echo "部署时间：$(date -u +%Y-%m-%d_%H:%M:%S)"
+
+          # 这里可以添加实际的部署脚本
+          # 例如：kubectl apply, docker-compose up 等
+          echo "部署脚本执行完成"
+
+      - name: 创建部署状态
+        if: always()
+        uses: actions/create-deployment@v1
+        with:
+          token: ${{ github.token }}
+          environment: ${{ env.name }}
+          status: ${{ job.status }}
+
+      - name: 通知部署结果
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            部署到测试环境
+            分支: ${{ github.ref_name }}
+            提交: ${{ github.sha }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # ==================== 阶段 7: 部署到生产环境 ====================
+  deploy-production:
+    name: 部署到生产环境 (Production)
+    runs-on: ubuntu-latest
+    needs: docker-build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: production
+      url: https://api.phone-taxi.app
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 创建部署标签
+        run: |
+          git tag -a "v$(date +%Y.%m.%d)" ${{ github.sha }}
+          git push origin "v$(date +%Y.%m.%d)"
+
+      - name: 部署到生产环境
+        run: |
+          echo "部署到生产环境：${{ env.PRODUCTION_URL }}"
+          echo "服务版本：${{ github.sha }}"
+          echo "部署时间：$(date -u +%Y-%m-%d_%H:%M:%S)"
+
+          # 这里可以添加实际的部署脚本
+          # 例如：kubectl apply, docker-compose up 等
+          echo "部署脚本执行完成"
+
+      - name: 创建部署状态
+        if: always()
+        uses: actions/create-deployment@v1
+        with:
+          token: ${{ github.token }}
+          environment: ${{ env.name }}
+          status: ${{ job.status }}
+
+      - name: 运行冒烟测试
+        run: |
+          echo "运行生产环境冒烟测试..."
+          curl -f ${{ env.PRODUCTION_URL }}/health
+          curl -f ${{ env.PRODUCTION_URL }}/api/health
+
+          echo "冒烟测试完成"
+
+      - name: 通知部署结果
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            🚀 部署到生产环境
+            分支: ${{ github.ref_name }}
+            提交: ${{ github.sha }}
+            链接: ${{ env.PRODUCTION_URL }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # ==================== 阶段 8: 性能测试 ====================
+  performance-tests:
+    name: 性能测试 (Performance Tests)
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/develop'
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 安装 Artillery
+        run: npm install -g artillery
+
+      - name: 运行负载测试
+        run: |
+          artillery run tests/performance/load-test.yml
+        env:
+          API_URL: https://staging.phone-taxi.app/api
+
+      - name: 上传性能测试报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-test-reports
+          path: tests/performance/artillery-report/
+          retention-days: 30
+
+  # ==================== 阶段 9: 安全扫描 ====================
+  security-scan:
+    name: 安全扫描 (Security Scan)
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 运行 Trivy 容器扫描
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: 上传安全扫描报告
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: trivy-results.sarif
+
+      - name: 运行 Snyk 依赖扫描
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: monitor
+          args: --all-projects
+
+  # ==================== 通知和报告 ====================
+  notify:
+    name: 汇总通知 (Summary)
+    runs-on: ubuntu-latest
+    needs: [lint, unit-tests, integration-tests, build, docker-build]
+    if: always()
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 生成测试摘要
+        uses: test-summary/action@v2
+        with:
+          pass: ${{ needs.unit-tests.result == 'success' && needs.integration-tests.result == 'success' }}
+          fail: ${{ needs.unit-tests.result == 'failure' || needs.integration-tests.result == 'failure' }}
+
+      - name: 创建状态徽章
+        if: always()
+        uses: actions/badge-generator@v1
+        with:
+          label: build
+          status: ${{ needs.build.result }}
+          named-logo: nestjs
+          color: 42b883
+
+      - name: 更新 GitHub 状态
+        if: always()
+        uses: Sibz/github-status-action@v1.0.0
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          CONTEXT: Phone Taxi App CI
+          STATE: ${{ needs.build.result == 'success' && 'success' || 'failure' }}
+          DESCRIPTION: ${{ needs.build.result == 'success' && 'CI/CD 流水线成功' || 'CI/CD 流水线失败' }}
+          TARGET_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}

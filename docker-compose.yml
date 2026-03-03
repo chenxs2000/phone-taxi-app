@@ -1,0 +1,216 @@
+version: '3.8'
+
+services:
+  # MongoDB
+  mongodb:
+    image: mongo:7.0
+    container_name: phone-taxi-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+    networks:
+      - phone-taxi-network
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: phone-taxi-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - phone-taxi-network
+
+  # RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: phone-taxi-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: password123
+    networks:
+      - phone-taxi-network
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./infrastructure/api-gateway
+      dockerfile: Dockerfile
+    container_name: phone-taxi-api-gateway
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGODB_URI=mongodb://admin:password123@mongodb:27017/phone-taxi?authSource=admin
+      - USER_SERVICE_URL=http://user-service:3001
+      - ORDER_SERVICE_URL=http://order-service:3002
+      - DISPATCH_SERVICE_URL=http://dispatch-service:3003
+      - PAYMENT_SERVICE_URL=http://payment-service:3004
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3005
+      - STATISTICS_SERVICE_URL=http://statistics-service:3006
+      - CALL_SERVICE_URL=http://call-service:3007
+    depends_on:
+      - mongodb
+      - redis
+      - user-service
+      - order-service
+      - dispatch-service
+      - payment-service
+      - notification-service
+      - statistics-service
+      - call-service
+    networks:
+      - phone-taxi-network
+
+  # User Service
+  user-service:
+    build:
+      context: ./services/user-service
+      dockerfile: Dockerfile
+    container_name: phone-taxi-user-service
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - MONGODB_URI=mongodb://admin:password123@mongodb:27017/phone-taxi?authSource=admin
+      - RABBITMQ_URI=amqp://admin:password123@rabbitmq:5672
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - mongodb
+      - rabbitmq
+      - redis
+    networks:
+      - phone-taxi-network
+
+  # Order Service
+  order-service:
+    build:
+      context: ./services/order-service
+      dockerfile: Dockerfile
+    container_name: phone-taxi-order-service
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    environment:
+      - MONGODB_URI=mongodb://admin:password123@mongodb:27017/phone-taxi?authSource=admin
+      - RABBITMQ_URI=amqp://admin:password123@rabbitmq:5672
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - mongodb
+      - rabbitmq
+      - redis
+    networks:
+      - phone-taxi-network
+
+  # Dispatch Service
+  dispatch-service:
+    build:
+      context: ./services/dispatch-service
+      dockerfile: Dockerfile
+    container_name: phone-taxi-dispatch-service
+    restart: unless-stopped
+    ports:
+      - "3003:3003"
+    environment:
+      - MONGODB_URI=mongodb://admin:password123@mongodb:27017/phone-taxi?authSource=admin
+      - RABBITMQ_URI=amqp://admin:password123@rabbitmq:5672
+    depends_on:
+      - mongodb
+      - rabbitmq
+    networks:
+      - phone-taxi-network
+
+  # Payment Service
+  payment-service:
+    build:
+      context: ./services/payment-service
+      dockerfile: Dockerfile
+    container_name: phone-taxi-payment-service
+    restart: unless-stopped
+    ports:
+      - "3004:3004"
+    environment:
+      - MONGODB_URI=mongodb://admin:password123@mongodb:27017/phone-taxi?authSource=admin
+      - RABBITMQ_URI=amqp://admin:password123@rabbitmq:5672
+    depends_on:
+      - mongodb
+      - rabbitmq
+    networks:
+      - phone-taxi-network
+
+  # Notification Service
+  notification-service:
+    build:
+      context: ./services/notification-service
+      dockerfile: Dockerfile
+    container_name: phone-taxi-notification-service
+    restart: unless-stopped
+    ports:
+      - "3005:3005"
+    environment:
+      - MONGODB_URI=mongodb://admin:password123@mongodb:27017/phone-taxi?authSource=admin
+      - RABBITMQ_URI=amqp://admin:password123@rabbitmq:5672
+    depends_on:
+      - mongodb
+      - rabbitmq
+    networks:
+      - phone-taxi-network
+
+  # Statistics Service
+  statistics-service:
+    build:
+      context: ./services/statistics-service
+      dockerfile: Dockerfile
+    container_name: phone-taxi-statistics-service
+    restart: unless-stopped
+    ports:
+      - "3006:3006"
+    environment:
+      - MONGODB_URI=mongodb://admin:password123@mongodb:27017/phone-taxi?authSource=admin
+      - RABBITMQ_URI=amqp://admin:password123@rabbitmq:5672
+    depends_on:
+      - mongodb
+      - rabbitmq
+    networks:
+      - phone-taxi-network
+
+  # Call Service
+  call-service:
+    build:
+      context: ./services/call-service
+      dockerfile: Dockerfile
+    container_name: phone-taxi-call-service
+    restart: unless-stopped
+    ports:
+      - "3007:3007"
+    environment:
+      - MONGODB_URI=mongodb://admin:password123@mongodb:27017/phone-taxi?authSource=admin
+      - RABBITMQ_URI=amqp://admin:password123@rabbitmq:5672
+    depends_on:
+      - mongodb
+      - rabbitmq
+    networks:
+      - phone-taxi-network
+
+networks:
+  phone-taxi-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  redis_data:
+  rabbitmq_data:
