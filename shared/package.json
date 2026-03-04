@@ -1,0 +1,14 @@
+{
+  "name": "phone-taxi-shared",
+  "version": "1.0.0",
+  "description": "Shared utilities and types for phone taxi app",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "private": true,
+  "exports": {
+    "./utils": "./utils/index.js",
+    "./constants": "./constants/index.js",
+    "./types": "./types/index.js",
+    "./dto": "./dto/index.js"
+  }
+}

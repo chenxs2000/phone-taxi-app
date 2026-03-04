@@ -1,4 +1,5 @@
-import { registerAs, MongooseModuleOptions } from '@nestjs/mongoose';
+import { registerAs } from '@nestjs/config';
+import { MongooseModuleOptions } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
 
 export const getMongoConfig = async (
