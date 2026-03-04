@@ -247,11 +247,16 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.DOCKER_REGISTRY }}/${{ env.ORGANIZATION }}/${{ matrix.service.name }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=sha,prefix=
+          labels: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=sha,prefix=
         outputs:
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ toJson(steps.meta.outputs.tags) }}
 
       - name: 构建并推送 Docker 镜像
         uses: docker/build-push-action@v5
@@ -259,8 +264,8 @@ jobs:
           context: ./${{ matrix.service.path }}
           file: ./${{ matrix.service.path }}/Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ toJson(steps.meta.outputs.tags) }}
+          labels: ${{ toJson(steps.meta.outputs.labels) }}
           cache-from: type=gha,scope=buildkit
           cache-to: type=gha,mode=max
           platforms: linux/amd64,linux/arm64
