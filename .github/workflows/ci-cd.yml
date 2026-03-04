@@ -115,10 +115,9 @@ jobs:
         image: mongo:7.0
         ports:
           - 27017:27017
-        options: >-
-          --auth
-          --username admin
-          --password password123
+        env:
+          MONGO_INITDB_ROOT_USERNAME: admin
+          MONGO_INITDB_ROOT_PASSWORD: password123
 
       redis:
         image: redis:7-alpine
