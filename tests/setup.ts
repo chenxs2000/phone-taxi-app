@@ -69,7 +69,7 @@ beforeEach(async () => {
 export async function waitForCondition(
   condition: () => boolean | Promise<boolean>,
   timeout = 5000,
-  interval = 100,
+  interval = 100
 ): Promise<void> {
   const startTime = Date.now();
   while (Date.now() - startTime < timeout) {
@@ -94,7 +94,9 @@ export async function sleep(ms: number): Promise<void> {
 export function generateRandomPhone(): string {
   const prefixes = ['138', '139', '150', '151', '152', '186', '187', '188', '189'];
   const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-  const suffix = Math.floor(Math.random() * 100000000).toString().padStart(8, '0');
+  const suffix = Math.floor(Math.random() * 100000000)
+    .toString()
+    .padStart(8, '0');
   return `${prefix}${suffix}`;
 }
 
@@ -109,7 +111,9 @@ export function generateRandomUserId(): string {
  * 工具函数 - 生成随机订单号
  */
 export function generateRandomOrderNo(): string {
-  return `TAXI${Date.now()}${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+  return `TAXI${Date.now()}${Math.floor(Math.random() * 10000)
+    .toString()
+    .padStart(4, '0')}`;
 }
 
 /**
@@ -150,7 +154,11 @@ export async function createTestOrder(userId?: string): Promise<any> {
 /**
  * 工具函数 - 获取访问令牌
  */
-export async function getAccessToken(baseUrl: string, phone: string, password: string): Promise<string> {
+export async function getAccessToken(
+  baseUrl: string,
+  phone: string,
+  password: string
+): Promise<string> {
   const response = await fetch(`${baseUrl}/api/v1/user/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -167,6 +175,6 @@ export async function getAccessToken(baseUrl: string, phone: string, password: s
 export function createAuthHeaders(token: string): Record<string, string> {
   return {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`,
+    Authorization: `Bearer ${token}`,
   };
 }

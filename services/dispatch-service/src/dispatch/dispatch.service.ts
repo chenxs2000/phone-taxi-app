@@ -17,7 +17,7 @@ import { v4 as uuidv4 } from 'uuid';
 export class DispatchService {
   constructor(
     @InjectModel(Driver.name) private driverModel: Model<Driver>,
-    @InjectModel(Dispatch.name) private dispatchModel: Model<Dispatch>,
+    @InjectModel(Dispatch.name) private dispatchModel: Model<Dispatch>
   ) {}
 
   // ==================== 派单相关方法 ====================
@@ -37,7 +37,7 @@ export class DispatchService {
 
     // 筛选在线且空闲的司机
     const availableDrivers = nearbyDrivers.filter(
-      (d) => d.isOnline && d.status === DriverStatus.IDLE,
+      d => d.isOnline && d.status === DriverStatus.IDLE
     );
 
     if (availableDrivers.length === 0) {
@@ -124,7 +124,7 @@ export class DispatchService {
     // 更新司机状态为接单中
     await this.driverModel.findOneAndUpdate(
       { driverId: dispatch.driverId },
-      { status: DriverStatus.ACCEPTING, currentOrderId: dispatch.orderId },
+      { status: DriverStatus.ACCEPTING, currentOrderId: dispatch.orderId }
     );
 
     // TODO: 取消该订单的其他派单
@@ -202,7 +202,7 @@ export class DispatchService {
       throw new BadRequestException('无效的坐标');
     }
 
-      driver.location = {
+    driver.location = {
       type: 'Point',
       coordinates: [longitude as number, latitude as number], // MongoDB GeoJSON 使用 [lng, lat]
     };
@@ -260,12 +260,7 @@ export class DispatchService {
     return { drivers, count: drivers.length };
   }
 
-  async getDrivers(
-    page: number,
-    pageSize: number,
-    status?: number,
-    carType?: number,
-  ) {
+  async getDrivers(page: number, pageSize: number, status?: number, carType?: number) {
     const filter: any = {};
     if (status !== undefined) {
       filter.status = status;

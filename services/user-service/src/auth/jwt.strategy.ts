@@ -16,9 +16,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: any) {
     if (!payload || !payload.userId) {
-      throw new UnauthorizedException(
-        errorResponse(ERROR_CODES.UNAUTHORIZED, 'Token无效'),
-      );
+      throw new UnauthorizedException(errorResponse(ERROR_CODES.UNAUTHORIZED, 'Token无效'));
     }
     return { userId: payload.userId };
   }

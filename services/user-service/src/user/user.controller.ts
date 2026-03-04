@@ -1,4 +1,13 @@
-import { Controller, Post, Get, Put, Body, Param, UseGuards, UseInterceptors } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Put,
+  Body,
+  Param,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UserService } from './user.service';
@@ -72,10 +81,7 @@ export class UserController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '更新用户信息' })
   @ApiResponse({ status: 200, description: '更新成功' })
-  async updateUser(
-    @Body('userId') userId: string,
-    @Body() updateUserDto: UpdateUserDto,
-  ) {
+  async updateUser(@Body('userId') userId: string, @Body() updateUserDto: UpdateUserDto) {
     return await this.userService.updateUser(userId, updateUserDto);
   }
 }

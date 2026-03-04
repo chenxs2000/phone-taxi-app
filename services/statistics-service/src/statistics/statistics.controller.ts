@@ -1,9 +1,4 @@
-import {
-  Controller,
-  Get,
-  Query,
-  Param,
-} from '@nestjs/common';
+import { Controller, Get, Query, Param } from '@nestjs/common';
 import { StatisticsService } from './statistics.service';
 import { QueryStatisticsDto } from './dto/query-statistics.dto';
 

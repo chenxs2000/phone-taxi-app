@@ -21,13 +21,13 @@ describe('PaymentService', () => {
     status: PaymentStatus.PENDING,
     remarks: '测试支付',
     ...overrides,
-    save: jest.fn().mockImplementation(function() {
+    save: jest.fn().mockImplementation(function () {
       return Promise.resolve(this);
     }),
   });
 
   // 创建一个模拟的 Model 构造函数
-  const MockModel = jest.fn().mockImplementation((dto) => {
+  const MockModel = jest.fn().mockImplementation(dto => {
     return {
       ...createMockPayment(),
       ...dto,
@@ -128,7 +128,10 @@ describe('PaymentService', () => {
       const mockPaidPayment = createMockPayment({ status: PaymentStatus.PAID });
       MockModel.findOne.mockResolvedValue(mockPaidPayment);
 
-      const result = await service.refundPayment('payment-123', { paymentId: 'payment-123', reason: '用户退款' });
+      const result = await service.refundPayment('payment-123', {
+        paymentId: 'payment-123',
+        reason: '用户退款',
+      });
       expect(result.status).toBe(PaymentStatus.REFUNDED);
     });
 
@@ -136,7 +139,9 @@ describe('PaymentService', () => {
       const mockPendingPayment = createMockPayment({ status: PaymentStatus.PENDING });
       MockModel.findOne.mockResolvedValue(mockPendingPayment);
 
-      await expect(service.refundPayment('payment-123', { paymentId: 'payment-123' })).rejects.toThrow(BadRequestException);
+      await expect(
+        service.refundPayment('payment-123', { paymentId: 'payment-123' })
+      ).rejects.toThrow(BadRequestException);
     });
   });
 });

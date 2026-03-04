@@ -58,7 +58,7 @@ export class CallController {
     @Query('agentId') agentId?: string,
     @Query('orderId') orderId?: string,
     @Query('status') status?: number,
-    @Query('type') type?: number,
+    @Query('type') type?: number
   ) {
     return this.callService.getCalls(page, pageSize, {
       userId,
@@ -79,7 +79,7 @@ export class CallController {
   async getUserCalls(
     @Param('userId') userId: string,
     @Query('page') page: number = 1,
-    @Query('pageSize') pageSize: number = 20,
+    @Query('pageSize') pageSize: number = 20
   ) {
     return this.callService.getUserCalls(userId, page, pageSize);
   }

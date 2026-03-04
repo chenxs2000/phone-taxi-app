@@ -52,7 +52,7 @@ describe('DispatchService', () => {
     },
     rating: 4.5,
     totalTrips: 100,
-    save: jest.fn().mockImplementation(function() {
+    save: jest.fn().mockImplementation(function () {
       return Promise.resolve(this);
     }),
   });
@@ -64,13 +64,13 @@ describe('DispatchService', () => {
     status: DispatchStatus.DISPATCHED,
     assignedAt: new Date(),
     timeoutSeconds: 30,
-    save: jest.fn().mockImplementation(function() {
+    save: jest.fn().mockImplementation(function () {
       return Promise.resolve(this);
     }),
   });
 
   // 创建一个模拟的 Model 构造函数
-  const MockDriverModel = jest.fn().mockImplementation((dto) => {
+  const MockDriverModel = jest.fn().mockImplementation(dto => {
     return {
       ...createMockDriver(),
       ...dto,
@@ -88,7 +88,7 @@ describe('DispatchService', () => {
   MockDriverModel.countDocuments = jest.fn().mockResolvedValue(0);
 
   // 创建一个模拟的 Model 构造函数
-  const MockDispatchModel = jest.fn().mockImplementation((dto) => {
+  const MockDispatchModel = jest.fn().mockImplementation(dto => {
     return {
       ...createMockDispatch(),
       ...dto,

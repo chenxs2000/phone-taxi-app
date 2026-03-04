@@ -46,7 +46,7 @@ describe('UserController (e2e)', () => {
           username: '测试用户',
         })
         .expect(201)
-        .expect((res) => {
+        .expect(res => {
           expect(res.body.code).toBe(200);
           expect(res.body.data).toHaveProperty('userId');
           expect(res.body.data).toHaveProperty('token');
@@ -87,7 +87,7 @@ describe('UserController (e2e)', () => {
           verifyCode: mockVerifyCode,
         })
         .expect(201)
-        .expect((res) => {
+        .expect(res => {
           expect(res.body.code).toBe(200);
           expect(res.body.data).toHaveProperty('token');
           expect(res.body.data).toHaveProperty('userId');
@@ -114,7 +114,7 @@ describe('UserController (e2e)', () => {
         .post('/api/v1/user/send-verify-code')
         .send({ phone: '13812345680' })
         .expect(201)
-        .expect((res) => {
+        .expect(res => {
           expect(res.body.code).toBe(200);
         });
     });
@@ -133,12 +133,10 @@ describe('UserController (e2e)', () => {
   describe('GET /user/info', () => {
     it('应该成功返回用户信息', () => {
       // 需要先登录获取 token
-      const loginResponse = request(app.getHttpServer())
-        .post('/api/v1/user/login')
-        .send({
-          phone: '13812345681',
-          verifyCode: mockVerifyCode,
-        });
+      const loginResponse = request(app.getHttpServer()).post('/api/v1/user/login').send({
+        phone: '13812345681',
+        verifyCode: mockVerifyCode,
+      });
 
       // TODO: 使用返回的 token 请求用户信息
       // 目前跳过，需要先实现 JWT 认证中间件

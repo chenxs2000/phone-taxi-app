@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Put,
-  Body,
-  Param,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Post, Get, Put, Body, Param, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../services/user-service/src/auth/jwt-auth.guard';
 import { OrderService } from './order.service';
@@ -57,7 +49,7 @@ export class OrderController {
     @Param('userId') userId: string,
     @Body('status') status?: string,
     @Body('page') page?: number,
-    @Body('pageSize') pageSize?: number,
+    @Body('pageSize') pageSize?: number
   ) {
     return await this.orderService.getUserOrders(userId, status, page, pageSize);
   }
@@ -82,10 +74,7 @@ export class OrderController {
   @ApiOperation({ summary: '修改订单' })
   @ApiBody({ type: UpdateOrderDto })
   @ApiResponse({ status: 200, description: '修改成功' })
-  async updateOrder(
-    @Param('id') orderId: string,
-    @Body() updateOrderDto: UpdateOrderDto,
-  ) {
+  async updateOrder(@Param('id') orderId: string, @Body() updateOrderDto: UpdateOrderDto) {
     return await this.orderService.updateOrder(orderId, updateOrderDto);
   }
 
@@ -101,7 +90,7 @@ export class OrderController {
   async cancelOrder(
     @Param('id') orderId: string,
     @Body() cancelDto: CancelOrderDto,
-    @Body('cancelBy') cancelBy: number = 1, // 1-乘客 2-司机
+    @Body('cancelBy') cancelBy: number = 1 // 1-乘客 2-司机
   ) {
     return await this.orderService.cancelOrder(orderId, cancelDto, cancelBy);
   }
@@ -128,7 +117,7 @@ export class OrderController {
   async rateOrder(
     @Param('id') orderId: string,
     @Body('rating') rating: number,
-    @Body('comment') comment?: string,
+    @Body('comment') comment?: string
   ) {
     return await this.orderService.rateOrder(orderId, { rating, comment });
   }

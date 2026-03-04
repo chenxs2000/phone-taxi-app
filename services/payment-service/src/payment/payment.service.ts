@@ -9,9 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class PaymentService {
-  constructor(
-    @InjectModel(Payment.name) private paymentModel: Model<Payment>,
-  ) {}
+  constructor(@InjectModel(Payment.name) private paymentModel: Model<Payment>) {}
 
   async createPayment(dto: CreatePaymentDto) {
     // 检查订单是否已有支付记录
@@ -53,7 +51,7 @@ export class PaymentService {
     pageSize: number,
     status?: number,
     paymentType?: number,
-    userId?: string,
+    userId?: string
   ) {
     const filter: any = {};
     if (status !== undefined) {
@@ -153,19 +151,19 @@ export class PaymentService {
     const statistics = {
       date: startOfDay.toISOString().split('T')[0],
       totalPayments: payments.length,
-      paidCount: payments.filter((p) => p.status === PaymentStatus.PAID).length,
-      refundedCount: payments.filter((p) => p.status === PaymentStatus.REFUNDED).length,
+      paidCount: payments.filter(p => p.status === PaymentStatus.PAID).length,
+      refundedCount: payments.filter(p => p.status === PaymentStatus.REFUNDED).length,
       totalAmount: payments.reduce((sum, p) => sum + p.amount, 0),
       paidAmount: payments
-        .filter((p) => p.status === PaymentStatus.PAID)
+        .filter(p => p.status === PaymentStatus.PAID)
         .reduce((sum, p) => sum + p.amount, 0),
       refundedAmount: payments
-        .filter((p) => p.status === PaymentStatus.REFUNDED)
+        .filter(p => p.status === PaymentStatus.REFUNDED)
         .reduce((sum, p) => sum + p.amount, 0),
       paymentTypes: {
-        cash: payments.filter((p) => p.paymentType === PaymentType.CASH).length,
-        deputy: payments.filter((p) => p.paymentType === PaymentType.DEPUTY).length,
-        account: payments.filter((p) => p.paymentType === PaymentType.ACCOUNT).length,
+        cash: payments.filter(p => p.paymentType === PaymentType.CASH).length,
+        deputy: payments.filter(p => p.paymentType === PaymentType.DEPUTY).length,
+        account: payments.filter(p => p.paymentType === PaymentType.ACCOUNT).length,
       },
     };
 
@@ -194,28 +192,28 @@ export class PaymentService {
         totalAmount: payments.reduce((sum, p) => sum + p.amount, 0),
       },
       statusBreakdown: {
-        pending: payments.filter((p) => p.status === PaymentStatus.PENDING).length,
-        paid: payments.filter((p) => p.status === PaymentStatus.PAID).length,
-        refunded: payments.filter((p) => p.status === PaymentStatus.REFUNDED).length,
-        cancelled: payments.filter((p) => p.status === PaymentStatus.CANCELLED).length,
+        pending: payments.filter(p => p.status === PaymentStatus.PENDING).length,
+        paid: payments.filter(p => p.status === PaymentStatus.PAID).length,
+        refunded: payments.filter(p => p.status === PaymentStatus.REFUNDED).length,
+        cancelled: payments.filter(p => p.status === PaymentStatus.CANCELLED).length,
       },
       typeBreakdown: {
         cash: {
-          count: payments.filter((p) => p.paymentType === PaymentType.CASH).length,
+          count: payments.filter(p => p.paymentType === PaymentType.CASH).length,
           amount: payments
-            .filter((p) => p.paymentType === PaymentType.CASH)
+            .filter(p => p.paymentType === PaymentType.CASH)
             .reduce((sum, p) => sum + p.amount, 0),
         },
         deputy: {
-          count: payments.filter((p) => p.paymentType === PaymentType.DEPUTY).length,
+          count: payments.filter(p => p.paymentType === PaymentType.DEPUTY).length,
           amount: payments
-            .filter((p) => p.paymentType === PaymentType.DEPUTY)
+            .filter(p => p.paymentType === PaymentType.DEPUTY)
             .reduce((sum, p) => sum + p.amount, 0),
         },
         account: {
-          count: payments.filter((p) => p.paymentType === PaymentType.ACCOUNT).length,
+          count: payments.filter(p => p.paymentType === PaymentType.ACCOUNT).length,
           amount: payments
-            .filter((p) => p.paymentType === PaymentType.ACCOUNT)
+            .filter(p => p.paymentType === PaymentType.ACCOUNT)
             .reduce((sum, p) => sum + p.amount, 0),
         },
       },

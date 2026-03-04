@@ -56,7 +56,7 @@ export class NotificationController {
     @Query('driverId') driverId?: string,
     @Query('agentId') agentId?: string,
     @Query('status') status?: number,
-    @Query('type') type?: number,
+    @Query('type') type?: number
   ) {
     return this.notificationService.getNotifications(page, pageSize, {
       userId,
@@ -72,7 +72,7 @@ export class NotificationController {
     @Param('userId') userId: string,
     @Query('page') page: number = 1,
     @Query('pageSize') pageSize: number = 20,
-    @Query('unread') unread?: boolean,
+    @Query('unread') unread?: boolean
   ) {
     return this.notificationService.getUserNotifications(userId, page, pageSize, unread);
   }
@@ -82,7 +82,7 @@ export class NotificationController {
     @Param('driverId') driverId: string,
     @Query('page') page: number = 1,
     @Query('pageSize') pageSize: number = 20,
-    @Query('unread') unread?: boolean,
+    @Query('unread') unread?: boolean
   ) {
     return this.notificationService.getDriverNotifications(driverId, page, pageSize, unread);
   }
@@ -90,7 +90,7 @@ export class NotificationController {
   @Put(':notificationId')
   async updateNotification(
     @Param('notificationId') notificationId: string,
-    @Body() dto: UpdateNotificationDto,
+    @Body() dto: UpdateNotificationDto
   ) {
     return this.notificationService.updateNotification(notificationId, dto);
   }

@@ -8,7 +8,7 @@ import { errorResponse, ERROR_CODES, MESSAGES } from '../../../shared/utils';
 export class JwtAuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
-    private reflector: Reflector,
+    private reflector: Reflector
   ) {}
 
   canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
@@ -17,7 +17,7 @@ export class JwtAuthGuard implements CanActivate {
 
     if (!token) {
       throw new UnauthorizedException(
-        errorResponse(ERROR_CODES.UNAUTHORIZED, MESSAGES.UNAUTHORIZED),
+        errorResponse(ERROR_CODES.UNAUTHORIZED, MESSAGES.UNAUTHORIZED)
       );
     }
 
@@ -26,9 +26,7 @@ export class JwtAuthGuard implements CanActivate {
       request.user = payload;
       return true;
     } catch (error) {
-      throw new UnauthorizedException(
-        errorResponse(ERROR_CODES.UNAUTHORIZED, 'Token无效或已过期'),
-      );
+      throw new UnauthorizedException(errorResponse(ERROR_CODES.UNAUTHORIZED, 'Token无效或已过期'));
     }
   }
 

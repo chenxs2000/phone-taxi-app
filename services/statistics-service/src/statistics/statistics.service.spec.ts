@@ -257,7 +257,9 @@ describe('StatisticsService', () => {
 
     it('should throw NotFoundException if date not found', async () => {
       MockModel.findOne.mockResolvedValue(null);
-      await expect(service.getDailyStatisticsByDate('9999-12-31')).rejects.toThrow(NotFoundException);
+      await expect(service.getDailyStatisticsByDate('9999-12-31')).rejects.toThrow(
+        NotFoundException
+      );
     });
   });
 });

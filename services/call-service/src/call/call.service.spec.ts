@@ -18,7 +18,7 @@ describe('CallService', () => {
     startTime: new Date('2024-01-01T10:00:00'),
     duration: 120,
     ...overrides,
-    save: jest.fn().mockImplementation(function() {
+    save: jest.fn().mockImplementation(function () {
       return Promise.resolve(this);
     }),
   });
@@ -31,7 +31,7 @@ describe('CallService', () => {
   };
 
   // 创建一个模拟的 Model 构造函数
-  const MockModel = jest.fn().mockImplementation((dto) => {
+  const MockModel = jest.fn().mockImplementation(dto => {
     return {
       ...createMockCall(),
       ...dto,

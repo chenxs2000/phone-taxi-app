@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from './entities/user.entity';
@@ -6,15 +11,18 @@ import { UserStatus } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginDto } from './dto/login.dto';
-import { generateVerifyCode, maskPhone, successResponse, errorResponse } from '../../../shared/utils';
+import {
+  generateVerifyCode,
+  maskPhone,
+  successResponse,
+  errorResponse,
+} from '../../../shared/utils';
 import { ERROR_CODES, REDIS, MESSAGES } from '../../../shared/constants';
 import * as crypto from 'crypto';
 
 @Injectable()
 export class UserService {
-  constructor(
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
-  ) {}
+  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
   /**
    * 用户注册
@@ -205,7 +213,7 @@ export class UserService {
    * 生成 JWT Token
    */
   private generateToken(userId: string): string {
-    const jwt = require('jsonwebtoken');
+    const jwt = require('jsonwebtoken') as any;
     const secret = process.env.JWT_SECRET || 'phone-taxi-app-secret-key';
     const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
     return jwt.sign({ userId }, secret, { expiresIn });

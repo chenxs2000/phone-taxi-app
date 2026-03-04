@@ -7,7 +7,7 @@ import { QueryStatisticsDto } from './dto/query-statistics.dto';
 @Injectable()
 export class StatisticsService {
   constructor(
-    @InjectModel(DailyStatistics.name) private dailyStatisticsModel: Model<DailyStatistics>,
+    @InjectModel(DailyStatistics.name) private dailyStatisticsModel: Model<DailyStatistics>
   ) {}
 
   // ==================== 综合统计 ====================
@@ -43,9 +43,9 @@ export class StatisticsService {
         activeDrivers: this.sumField(statistics, 'activeDrivers'),
       },
       trends: {
-        orders: statistics.map((s) => ({ date: s.date, value: s.totalOrders })),
-        revenue: statistics.map((s) => ({ date: s.date, value: s.totalRevenue })),
-        users: statistics.map((s) => ({ date: s.date, value: s.activeUsers })),
+        orders: statistics.map(s => ({ date: s.date, value: s.totalOrders })),
+        revenue: statistics.map(s => ({ date: s.date, value: s.totalRevenue })),
+        users: statistics.map(s => ({ date: s.date, value: s.activeUsers })),
       },
     };
 
@@ -67,9 +67,11 @@ export class StatisticsService {
     const [todayStats, yesterdayStats, weekStats] = await Promise.all([
       this.dailyStatisticsModel.findOne({ date: todayStr }),
       this.dailyStatisticsModel.findOne({ date: yesterdayStr }),
-      this.dailyStatisticsModel.find({
-        date: { $gte: weekAgo.toISOString().split('T')[0], $lte: todayStr },
-      }).exec(),
+      this.dailyStatisticsModel
+        .find({
+          date: { $gte: weekAgo.toISOString().split('T')[0], $lte: todayStr },
+        })
+        .exec(),
     ]);
 
     return {
@@ -107,7 +109,7 @@ export class StatisticsService {
       timeoutOrders: this.sumField(statistics, 'timeoutOrders'),
       completionRate: this.calculateRate(
         this.sumField(statistics, 'completedOrders'),
-        this.sumField(statistics, 'totalOrders'),
+        this.sumField(statistics, 'totalOrders')
       ),
       orderTypeDistribution: this.sumDistribution(statistics, 'orderTypeDistribution'),
       carTypeDistribution: this.sumDistribution(statistics, 'carTypeDistribution'),
@@ -123,13 +125,15 @@ export class StatisticsService {
     const end = endDate ? new Date(endDate) : new Date();
     end.setHours(23, 59, 59, 999);
 
-    const statsQuery = this.dailyStatisticsModel.find({
-      date: { $gte: start.toISOString().split('T')[0], $lte: end.toISOString().split('T')[0] },
-    }).sort({ date: 1 });
+    const statsQuery = this.dailyStatisticsModel
+      .find({
+        date: { $gte: start.toISOString().split('T')[0], $lte: end.toISOString().split('T')[0] },
+      })
+      .sort({ date: 1 });
     const statistics = await statsQuery.exec();
 
     return {
-      trend: statistics.map((s) => ({
+      trend: statistics.map(s => ({
         date: s.date,
         totalOrders: s.totalOrders,
         completedOrders: s.completedOrders,
@@ -170,13 +174,15 @@ export class StatisticsService {
     const end = endDate ? new Date(endDate) : new Date();
     end.setHours(23, 59, 59, 999);
 
-    const statsQuery = this.dailyStatisticsModel.find({
-      date: { $gte: start.toISOString().split('T')[0], $lte: end.toISOString().split('T')[0] },
-    }).sort({ date: 1 });
+    const statsQuery = this.dailyStatisticsModel
+      .find({
+        date: { $gte: start.toISOString().split('T')[0], $lte: end.toISOString().split('T')[0] },
+      })
+      .sort({ date: 1 });
     const statistics = await statsQuery.exec();
 
     let cumulativeUsers = 0;
-    const growth = statistics.map((s) => {
+    const growth = statistics.map(s => {
       cumulativeUsers += s.newUsers;
       return {
         date: s.date,
@@ -207,9 +213,10 @@ export class StatisticsService {
     return {
       activeDrivers: this.sumField(statistics, 'activeDrivers'),
       totalTrips: this.sumField(statistics, 'totalTrips'),
-      averageTripsPerDriver: statistics.length > 0
-        ? this.sumField(statistics, 'totalTrips') / this.sumField(statistics, 'activeDrivers')
-        : 0,
+      averageTripsPerDriver:
+        statistics.length > 0
+          ? this.sumField(statistics, 'totalTrips') / this.sumField(statistics, 'activeDrivers')
+          : 0,
     };
   }
 
@@ -256,9 +263,18 @@ export class StatisticsService {
       accountRevenue: this.sumField(statistics, 'accountRevenue'),
       deputyRevenue: this.sumField(statistics, 'deputyRevenue'),
       revenueDistribution: {
-        cash: this.calculateRate(this.sumField(statistics, 'cashRevenue'), this.sumField(statistics, 'totalRevenue')),
-        account: this.calculateRate(this.sumField(statistics, 'accountRevenue'), this.sumField(statistics, 'totalRevenue')),
-        deputy: this.calculateRate(this.sumField(statistics, 'deputyRevenue'), this.sumField(statistics, 'totalRevenue')),
+        cash: this.calculateRate(
+          this.sumField(statistics, 'cashRevenue'),
+          this.sumField(statistics, 'totalRevenue')
+        ),
+        account: this.calculateRate(
+          this.sumField(statistics, 'accountRevenue'),
+          this.sumField(statistics, 'totalRevenue')
+        ),
+        deputy: this.calculateRate(
+          this.sumField(statistics, 'deputyRevenue'),
+          this.sumField(statistics, 'totalRevenue')
+        ),
       },
     };
   }
@@ -272,13 +288,15 @@ export class StatisticsService {
     const end = endDate ? new Date(endDate) : new Date();
     end.setHours(23, 59, 59, 999);
 
-    const statsQuery = this.dailyStatisticsModel.find({
-      date: { $gte: start.toISOString().split('T')[0], $lte: end.toISOString().split('T')[0] },
-    }).sort({ date: 1 });
+    const statsQuery = this.dailyStatisticsModel
+      .find({
+        date: { $gte: start.toISOString().split('T')[0], $lte: end.toISOString().split('T')[0] },
+      })
+      .sort({ date: 1 });
     const statistics = await statsQuery.exec();
 
     return {
-      trend: statistics.map((s) => ({
+      trend: statistics.map(s => ({
         date: s.date,
         totalRevenue: s.totalRevenue,
         cashRevenue: s.cashRevenue,
@@ -311,7 +329,7 @@ export class StatisticsService {
       refundedAmount: this.sumField(statistics, 'refundedAmount'),
       successRate: this.calculateRate(
         this.sumField(statistics, 'successfulPayments'),
-        this.sumField(statistics, 'totalPayments'),
+        this.sumField(statistics, 'totalPayments')
       ),
     };
   }
@@ -341,12 +359,14 @@ export class StatisticsService {
       totalCalls: this.sumField(statistics, 'totalCalls'),
       connectedCalls: this.sumField(statistics, 'connectedCalls'),
       totalCallDuration: this.sumField(statistics, 'totalCallDuration'),
-      averageCallDuration: statistics.length > 0
-        ? this.sumField(statistics, 'totalCallDuration') / this.sumField(statistics, 'connectedCalls')
-        : 0,
+      averageCallDuration:
+        statistics.length > 0
+          ? this.sumField(statistics, 'totalCallDuration') /
+            this.sumField(statistics, 'connectedCalls')
+          : 0,
       connectionRate: this.calculateRate(
         this.sumField(statistics, 'connectedCalls'),
-        this.sumField(statistics, 'totalCalls'),
+        this.sumField(statistics, 'totalCalls')
       ),
     };
   }
@@ -373,7 +393,7 @@ export class StatisticsService {
       failedNotifications: this.sumField(statistics, 'failedNotifications'),
       successRate: this.calculateRate(
         this.sumField(statistics, 'sentNotifications'),
-        this.sumField(statistics, 'totalNotifications'),
+        this.sumField(statistics, 'totalNotifications')
       ),
     };
   }
@@ -424,9 +444,11 @@ export class StatisticsService {
     const end = endDate ? new Date(endDate) : new Date();
     end.setHours(23, 59, 59, 999);
 
-    const statsQuery = this.dailyStatisticsModel.find({
-      date: { $gte: start.toISOString().split('T')[0], $lte: end.toISOString().split('T')[0] },
-    }).sort({ date: -1 });
+    const statsQuery = this.dailyStatisticsModel
+      .find({
+        date: { $gte: start.toISOString().split('T')[0], $lte: end.toISOString().split('T')[0] },
+      })
+      .sort({ date: -1 });
     const statistics = await statsQuery.exec();
 
     return {

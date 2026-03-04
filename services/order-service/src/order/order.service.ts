@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Order, OrderDocument } from './entities/order.entity';
@@ -11,7 +16,9 @@ import { CancelOrderDto } from './dto/cancel-order.dto';
 function generateOrderNo(): string {
   const prefix = 'TAXI';
   const timestamp = Date.now();
-  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+  const random = Math.floor(Math.random() * 10000)
+    .toString()
+    .padStart(4, '0');
   return `${prefix}${timestamp}${random}`;
 }
 
@@ -19,7 +26,8 @@ function calculateEstimatedFare(distance: number, duration: number, carType: num
   const baseFare = 20; // 起步价
   const distanceFare = (distance / 1000) * 2; // 距离费用
   const timeFare = (duration / 60) * 1; // 时间费用
-  const carTypeMultiplier = carType === CarType.COMFORT ? 1.5 : carType === CarType.ACCESSIBLE ? 2 : 1;
+  const carTypeMultiplier =
+    carType === CarType.COMFORT ? 1.5 : carType === CarType.ACCESSIBLE ? 2 : 1;
   return Math.ceil((baseFare + distanceFare + timeFare) * carTypeMultiplier);
 }
 
@@ -56,16 +64,15 @@ const MESSAGES = {
 
 @Injectable()
 export class OrderService {
-  constructor(
-    @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
-  ) {}
+  constructor(@InjectModel(Order.name) private orderModel: Model<OrderDocument>) {}
 
   /**
    * 创建订单
    * 对应测试用例: TC-ORDER-001 ~ TC-ORDER-003
    */
   async createOrder(createOrderDto: CreateOrderDto) {
-    const { userId, pickup, destination, carType, passengerCount, orderType, bookingTime } = createOrderDto;
+    const { userId, pickup, destination, carType, passengerCount, orderType, bookingTime } =
+      createOrderDto;
 
     // 1. 创建订单
     const newOrder = new this.orderModel({
@@ -142,7 +149,7 @@ export class OrderService {
     userId: string,
     status?: OrderStatus,
     page: number = 1,
-    pageSize: number = 20,
+    pageSize: number = 20
   ) {
     const query: any = { userId };
     if (status !== undefined) {
@@ -185,7 +192,9 @@ export class OrderService {
 
     // 只有待派单状态可以修改
     if (order.orderStatus !== OrderStatus.PENDING_DISPATCH) {
-      throw new BadRequestException(errorResponse(ERROR_CODES.ORDER_STATUS_ERROR, '订单状态不允许修改'));
+      throw new BadRequestException(
+        errorResponse(ERROR_CODES.ORDER_STATUS_ERROR, '订单状态不允许修改')
+      );
     }
 
     // 更新允许的字段
@@ -203,7 +212,10 @@ export class OrderService {
     }
 
     // 重新计算预估费用
-    const distance = this.calculateDistance(order.pickup!, updateOrderDto.destination || order.destination);
+    const distance = this.calculateDistance(
+      order.pickup!,
+      updateOrderDto.destination || order.destination
+    );
     order.fare!.estimated = calculateEstimatedFare(distance, 1800);
 
     await order.save();
@@ -255,7 +267,13 @@ export class OrderService {
    * 订单状态流转
    * 对应测试用例: TC-ORDER-013 ~ TC-ORDER-014
    */
-  async updateOrderStatus(orderId: string, newStatus: OrderStatus, operatorId?: string, operatorType?: number, remark?: string) {
+  async updateOrderStatus(
+    orderId: string,
+    newStatus: OrderStatus,
+    operatorId?: string,
+    operatorType?: number,
+    remark?: string
+  ) {
     const order = await this.orderModel.findById(orderId).exec();
     if (!order) {
       throw new NotFoundException(errorResponse(ERROR_CODES.ORDER_NOT_FOUND, '订单不存在'));
@@ -265,7 +283,9 @@ export class OrderService {
 
     // 验证状态流转的合法性
     if (!this.isValidStatusTransition(oldStatus, newStatus)) {
-      throw new BadRequestException(errorResponse(ERROR_CODES.ORDER_STATUS_ERROR, '非法的状态流转'));
+      throw new BadRequestException(
+        errorResponse(ERROR_CODES.ORDER_STATUS_ERROR, '非法的状态流转')
+      );
     }
 
     // 记录状态变更
@@ -339,7 +359,9 @@ export class OrderService {
 
     // 只有已完成状态可以评价
     if (order.orderStatus !== OrderStatus.COMPLETED) {
-      throw new BadRequestException(errorResponse(ERROR_CODES.ORDER_STATUS_ERROR, '只有完成订单可以评价'));
+      throw new BadRequestException(
+        errorResponse(ERROR_CODES.ORDER_STATUS_ERROR, '只有完成订单可以评价')
+      );
     }
 
     if (rating < 1 || rating > 5) {
@@ -364,7 +386,12 @@ export class OrderService {
    */
   async getCurrentUnfinishedOrder(userId: string) {
     const order = await this.orderModel
-      .findOne({ userId, orderStatus: { $in: [OrderStatus.PENDING_DISPATCH, OrderStatus.PENDING_ACCEPT, OrderStatus.ACCEPTED] } })
+      .findOne({
+        userId,
+        orderStatus: {
+          $in: [OrderStatus.PENDING_DISPATCH, OrderStatus.PENDING_ACCEPT, OrderStatus.ACCEPTED],
+        },
+      })
       .sort({ createdAt: -1 })
       .exec();
 
@@ -388,7 +415,7 @@ export class OrderService {
    */
   private calculateDistance(
     pickup: { lat: number; lng: number },
-    destination: { lat: number; lng: number },
+    destination: { lat: number; lng: number }
   ): number {
     const R = 6371000;
     const dLat = this.toRadians(destination.lat - pickup.lat);
@@ -397,8 +424,9 @@ export class OrderService {
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos(this.toRadians(pickup.lat)) *
-      Math.cos(this.toRadians(destination.lat)) *
-      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        Math.cos(this.toRadians(destination.lat)) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
@@ -439,8 +467,16 @@ export class OrderService {
   private isValidStatusTransition(oldStatus: OrderStatus, newStatus: OrderStatus): boolean {
     // 定义允许的状态流转
     const validTransitions: Record<OrderStatus, OrderStatus[]> = {
-      [OrderStatus.PENDING_DISPATCH]: [OrderStatus.PENDING_ACCEPT, OrderStatus.CANCELLED, OrderStatus.TIMEOUT],
-      [OrderStatus.PENDING_ACCEPT]: [OrderStatus.ACCEPTED, OrderStatus.CANCELLED, OrderStatus.TIMEOUT],
+      [OrderStatus.PENDING_DISPATCH]: [
+        OrderStatus.PENDING_ACCEPT,
+        OrderStatus.CANCELLED,
+        OrderStatus.TIMEOUT,
+      ],
+      [OrderStatus.PENDING_ACCEPT]: [
+        OrderStatus.ACCEPTED,
+        OrderStatus.CANCELLED,
+        OrderStatus.TIMEOUT,
+      ],
       [OrderStatus.ACCEPTED]: [OrderStatus.ARRIVED, OrderStatus.CANCELLED],
       [OrderStatus.ARRIVED]: [OrderStatus.IN_PROGRESS, OrderStatus.CANCELLED],
       [OrderStatus.IN_PROGRESS]: [OrderStatus.COMPLETED, OrderStatus.CANCELLED],

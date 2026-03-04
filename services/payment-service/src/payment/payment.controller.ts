@@ -47,16 +47,13 @@ export class PaymentController {
     @Query('pageSize') pageSize: number = 20,
     @Query('status') status?: number,
     @Query('paymentType') paymentType?: number,
-    @Query('userId') userId?: string,
+    @Query('userId') userId?: string
   ) {
     return this.paymentService.getPayments(page, pageSize, status, paymentType, userId);
   }
 
   @Put(':paymentId')
-  async updatePayment(
-    @Param('paymentId') paymentId: string,
-    @Body() dto: UpdatePaymentDto,
-  ) {
+  async updatePayment(@Param('paymentId') paymentId: string, @Body() dto: UpdatePaymentDto) {
     return this.paymentService.updatePayment(paymentId, dto);
   }
 
@@ -68,10 +65,7 @@ export class PaymentController {
 
   @Post(':paymentId/refund')
   @HttpCode(HttpStatus.OK)
-  async refundPayment(
-    @Param('paymentId') paymentId: string,
-    @Body() dto: RefundPaymentDto,
-  ) {
+  async refundPayment(@Param('paymentId') paymentId: string, @Body() dto: RefundPaymentDto) {
     return this.paymentService.refundPayment(paymentId, dto);
   }
 
@@ -91,7 +85,7 @@ export class PaymentController {
   @Get('statistics/summary')
   async getPaymentSummary(
     @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
+    @Query('endDate') endDate?: string
   ) {
     return this.paymentService.getPaymentSummary(startDate, endDate);
   }

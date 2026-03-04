@@ -52,10 +52,7 @@ export class DispatchController {
   }
 
   @Put('dispatch/:dispatchId')
-  async updateDispatch(
-    @Param('dispatchId') dispatchId: string,
-    @Body() dto: UpdateDispatchDto,
-  ) {
+  async updateDispatch(@Param('dispatchId') dispatchId: string, @Body() dto: UpdateDispatchDto) {
     return this.dispatchService.updateDispatch(dispatchId, dto);
   }
 
@@ -93,7 +90,7 @@ export class DispatchController {
   @HttpCode(HttpStatus.OK)
   async updateDriverStatus(
     @Param('driverId') driverId: string,
-    @Body() dto: UpdateDriverStatusDto,
+    @Body() dto: UpdateDriverStatusDto
   ) {
     return this.dispatchService.updateDriverStatus(driverId, dto);
   }
@@ -102,7 +99,7 @@ export class DispatchController {
   @HttpCode(HttpStatus.OK)
   async updateDriverLocation(
     @Param('driverId') driverId: string,
-    @Body() dto: UpdateDriverLocationDto,
+    @Body() dto: UpdateDriverLocationDto
   ) {
     return this.dispatchService.updateDriverLocation(driverId, dto);
   }
@@ -122,7 +119,7 @@ export class DispatchController {
     @Query('page') page: number = 1,
     @Query('pageSize') pageSize: number = 20,
     @Query('status') status?: number,
-    @Query('carType') carType?: number,
+    @Query('carType') carType?: number
   ) {
     return this.dispatchService.getDrivers(page, pageSize, status, carType);
   }

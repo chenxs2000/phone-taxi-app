@@ -9,9 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class CallService {
-  constructor(
-    @InjectModel(Call.name) private callModel: Model<Call>,
-  ) {}
+  constructor(@InjectModel(Call.name) private callModel: Model<Call>) {}
 
   async initiateCall(dto: InitiateCallDto) {
     const call = new this.callModel({
@@ -181,15 +179,16 @@ export class CallService {
     const statistics = {
       date: startOfDay.toISOString().split('T')[0],
       totalCalls: calls.length,
-      connectedCount: calls.filter((c) => c.status === CallStatus.CONNECTED).length,
-      failedCount: calls.filter((c) => c.status === CallStatus.FAILED).length,
-      busyCount: calls.filter((c) => c.status === CallStatus.BUSY).length,
-      noAnswerCount: calls.filter((c) => c.status === CallStatus.NO_ANSWER).length,
+      connectedCount: calls.filter(c => c.status === CallStatus.CONNECTED).length,
+      failedCount: calls.filter(c => c.status === CallStatus.FAILED).length,
+      busyCount: calls.filter(c => c.status === CallStatus.BUSY).length,
+      noAnswerCount: calls.filter(c => c.status === CallStatus.NO_ANSWER).length,
       totalDuration: calls.reduce((sum, c) => sum + (c.duration || 0), 0),
-      averageDuration: calls.length > 0 ? calls.reduce((sum, c) => sum + (c.duration || 0), 0) / calls.length : 0,
+      averageDuration:
+        calls.length > 0 ? calls.reduce((sum, c) => sum + (c.duration || 0), 0) / calls.length : 0,
       callTypes: {
-        incoming: calls.filter((c) => c.type === CallType.INCOMING).length,
-        outgoing: calls.filter((c) => c.type === CallType.OUTGOING).length,
+        incoming: calls.filter(c => c.type === CallType.INCOMING).length,
+        outgoing: calls.filter(c => c.type === CallType.OUTGOING).length,
       },
     };
 

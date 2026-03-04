@@ -5,11 +5,7 @@ import { CallService } from './call.service';
 import { Call, CallSchema } from './entities/call.entity';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([
-      { name: Call.name, schema: CallSchema },
-    ]),
-  ],
+  imports: [MongooseModule.forFeature([{ name: Call.name, schema: CallSchema }])],
   controllers: [CallController],
   providers: [CallService],
   exports: [CallService],

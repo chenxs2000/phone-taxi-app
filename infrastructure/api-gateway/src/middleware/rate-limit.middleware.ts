@@ -34,11 +34,14 @@ export class RateLimitMiddleware implements NestMiddleware {
 
     // 检查是否超过限制
     if (record.count > config.maxRequests) {
-      throw new HttpException({
-        code: HttpStatus.TOO_MANY_REQUESTS,
-        message: '请求过于频繁，请稍后再试',
-        retryAfter: Math.ceil((config.windowMs - (now - record.lastReset)) / 1000),
-      }, HttpStatus.TOO_MANY_REQUESTS);
+      throw new HttpException(
+        {
+          code: HttpStatus.TOO_MANY_REQUESTS,
+          message: '请求过于频繁，请稍后再试',
+          retryAfter: Math.ceil((config.windowMs - (now - record.lastReset)) / 1000),
+        },
+        HttpStatus.TOO_MANY_REQUESTS
+      );
     }
 
     next();

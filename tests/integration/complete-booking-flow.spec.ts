@@ -351,9 +351,7 @@ describe('Complete Booking Flow Integration Tests', () => {
    */
   describe('错误处理 (TC-INT-008)', () => {
     it('应该拒绝未授权的请求', async () => {
-      await request(app.getHttpServer())
-        .get('/api/v1/order/orders')
-        .expect(401);
+      await request(app.getHttpServer()).get('/api/v1/order/orders').expect(401);
     });
 
     it('应该拒绝无效的订单ID', async () => {

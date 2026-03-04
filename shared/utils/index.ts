@@ -15,7 +15,9 @@ export function generateId(): string {
 export function generateOrderNo(): string {
   const prefix = 'TAXI';
   const timestamp = Date.now();
-  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+  const random = Math.floor(Math.random() * 10000)
+    .toString()
+    .padStart(4, '0');
   return `${prefix}${timestamp}${random}`;
 }
 
@@ -25,7 +27,9 @@ export function generateOrderNo(): string {
 export function generatePaymentNo(): string {
   const prefix = 'PAY';
   const timestamp = Date.now();
-  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+  const random = Math.floor(Math.random() * 10000)
+    .toString()
+    .padStart(4, '0');
   return `${prefix}${timestamp}${random}`;
 }
 
@@ -35,7 +39,9 @@ export function generatePaymentNo(): string {
 export function generateRechargeNo(): string {
   const prefix = 'RCH';
   const timestamp = Date.now();
-  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+  const random = Math.floor(Math.random() * 10000)
+    .toString()
+    .padStart(4, '0');
   return `${prefix}${timestamp}${random}`;
 }
 
@@ -45,7 +51,9 @@ export function generateRechargeNo(): string {
 export function generateWithdrawNo(): string {
   const prefix = 'WTH';
   const timestamp = Date.now();
-  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+  const random = Math.floor(Math.random() * 10000)
+    .toString()
+    .padStart(4, '0');
   return `${prefix}${timestamp}${random}`;
 }
 
@@ -53,20 +61,14 @@ export function generateWithdrawNo(): string {
  * 计算两点间距离（米）
  * 使用 Haversine 公式
  */
-export function calculateDistance(
-  lat1: number,
-  lng1: number,
-  lat2: number,
-  lng2: number,
-): number {
+export function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371000; // 地球半径（米）
   const dLat = toRadians(lat2 - lat1);
   const dLng = toRadians(lng2 - lng1);
 
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
-    Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
@@ -87,12 +89,12 @@ export function calculateEstimatedFare(
   duration: number, // 秒
   baseFare: number = 13,
   distanceFare: number = 2.3, // 每公里
-  timeFare: number = 0.5, // 每分钟
+  timeFare: number = 0.5 // 每分钟
 ): number {
   const distanceKm = distance / 1000;
   const timeMinutes = duration / 60;
 
-  const fare = baseFare + (distanceKm * distanceFare) + (timeMinutes * timeFare);
+  const fare = baseFare + distanceKm * distanceFare + timeMinutes * timeFare;
   return Math.round(fare * 100) / 100;
 }
 
@@ -112,7 +114,11 @@ export function maskIdCard(idCard: string): string {
   const len = idCard.length;
   const showStart = 3;
   const showEnd = 4;
-  return idCard.substring(0, showStart) + '*'.repeat(len - showStart - showEnd) + idCard.substring(len - showEnd);
+  return (
+    idCard.substring(0, showStart) +
+    '*'.repeat(len - showStart - showEnd) +
+    idCard.substring(len - showEnd)
+  );
 }
 
 /**
@@ -216,7 +222,7 @@ export function delay(ms: number): Promise<void> {
 export async function retry<T>(
   fn: () => Promise<T>,
   maxRetries: number = 3,
-  delayMs: number = 1000,
+  delayMs: number = 1000
 ): Promise<T> {
   let lastError: Error;
 
@@ -237,10 +243,7 @@ export async function retry<T>(
 /**
  * 分页参数处理
  */
-export function getPaginationParams(
-  page?: number,
-  pageSize?: number,
-) {
+export function getPaginationParams(page?: number, pageSize?: number) {
   const p = Math.max(page || 1, 1);
   const ps = Math.min(Math.max(pageSize || 20, 1), 100);
   return {
@@ -268,7 +271,7 @@ export function successResponse<T>(data: T, message?: string) {
 export function errorResponse(
   code: number,
   message: string,
-  errors?: Array<{ field: string; message: string }>,
+  errors?: Array<{ field: string; message: string }>
 ) {
   return {
     code,

@@ -1,4 +1,19 @@
-import { Controller, Get, Post, Put, Delete, Patch, Body, Param, Req, Res, UseGuards, HttpStatus, HttpException, Headers } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Patch,
+  Body,
+  Param,
+  Req,
+  Res,
+  UseGuards,
+  HttpStatus,
+  HttpException,
+  Headers,
+} from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from './config/app.config';
 import { JwtAuthGuard } from './guard/jwt-auth.guard';
@@ -22,7 +37,7 @@ const WHITE_LIST = [
 export class AppGateway {
   constructor(
     private readonly config: ConfigService,
-    private readonly httpService: HttpService,
+    private readonly httpService: HttpService
   ) {}
 
   /**
@@ -78,16 +93,13 @@ export class AppGateway {
     method: string,
     req: any,
     headers: any,
-    body?: any,
+    body?: any
   ) {
     const allServices = this.config.getAllServices();
     const serviceUrl = allServices[serviceName as keyof typeof allServices];
 
     if (!serviceUrl) {
-      throw new HttpException(
-        `服务 ${serviceName} 未配置`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw new HttpException(`服务 ${serviceName} 未配置`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     try {
@@ -115,25 +127,16 @@ export class AppGateway {
 
       // 处理连接错误
       if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
-        throw new HttpException(
-          `服务 ${serviceName} 暂时不可用`,
-          HttpStatus.SERVICE_UNAVAILABLE,
-        );
+        throw new HttpException(`服务 ${serviceName} 暂时不可用`, HttpStatus.SERVICE_UNAVAILABLE);
       }
 
       // 处理超时
       if (error.code === 'ETIMEDOUT' || error.code === 'ECONNABORTED') {
-        throw new HttpException(
-          `服务 ${serviceName} 响应超时`,
-          HttpStatus.GATEWAY_TIMEOUT,
-        );
+        throw new HttpException(`服务 ${serviceName} 响应超时`, HttpStatus.GATEWAY_TIMEOUT);
       }
 
       // 其他错误
-      throw new HttpException(
-        '内部服务错误',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw new HttpException('内部服务错误', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -156,13 +159,7 @@ export class AppGateway {
   async proxyUserGet(@Req() req: any, @Res() res: Response) {
     const path = req.originalUrl.replace('/api/v1/user', '');
 
-    const data = await this.proxyRequest(
-      'userService',
-      path,
-      'GET',
-      req,
-      req.headers,
-    );
+    const data = await this.proxyRequest('userService', path, 'GET', req, req.headers);
 
     return res.status(HttpStatus.OK).json(data);
   }
@@ -174,14 +171,7 @@ export class AppGateway {
   async proxyUserRegister(@Req() req: any, @Res() res: Response) {
     const path = '/register';
 
-    const data = await this.proxyRequest(
-      'userService',
-      path,
-      'POST',
-      req,
-      req.headers,
-      req.body,
-    );
+    const data = await this.proxyRequest('userService', path, 'POST', req, req.headers, req.body);
 
     return res.status(HttpStatus.OK).json(data);
   }
@@ -193,14 +183,7 @@ export class AppGateway {
   async proxyUserLogin(@Req() req: any, @Res() res: Response) {
     const path = '/login';
 
-    const data = await this.proxyRequest(
-      'userService',
-      path,
-      'POST',
-      req,
-      req.headers,
-      req.body,
-    );
+    const data = await this.proxyRequest('userService', path, 'POST', req, req.headers, req.body);
 
     return res.status(HttpStatus.OK).json(data);
   }
@@ -212,14 +195,7 @@ export class AppGateway {
   async proxyUserSendCode(@Req() req: any, @Res() res: Response) {
     const path = '/send-verify-code';
 
-    const data = await this.proxyRequest(
-      'userService',
-      path,
-      'POST',
-      req,
-      req.headers,
-      req.body,
-    );
+    const data = await this.proxyRequest('userService', path, 'POST', req, req.headers, req.body);
 
     return res.status(HttpStatus.OK).json(data);
   }
@@ -231,14 +207,7 @@ export class AppGateway {
   async proxyUserVerifyCode(@Req() req: any, @Res() res: Response) {
     const path = '/verify-code';
 
-    const data = await this.proxyRequest(
-      'userService',
-      path,
-      'POST',
-      req,
-      req.headers,
-      req.body,
-    );
+    const data = await this.proxyRequest('userService', path, 'POST', req, req.headers, req.body);
 
     return res.status(HttpStatus.OK).json(data);
   }
@@ -251,14 +220,7 @@ export class AppGateway {
   async proxyUserPost(@Req() req: any, @Res() res: Response) {
     const path = req.originalUrl.replace('/api/v1/user', '');
 
-    const data = await this.proxyRequest(
-      'userService',
-      path,
-      'POST',
-      req,
-      req.headers,
-      req.body,
-    );
+    const data = await this.proxyRequest('userService', path, 'POST', req, req.headers, req.body);
 
     return res.status(HttpStatus.OK).json(data);
   }
@@ -271,14 +233,7 @@ export class AppGateway {
   async proxyUserPut(@Req() req: any, @Res() res: Response) {
     const path = req.originalUrl.replace('/api/v1/user', '');
 
-    const data = await this.proxyRequest(
-      'userService',
-      path,
-      'PUT',
-      req,
-      req.headers,
-      req.body,
-    );
+    const data = await this.proxyRequest('userService', path, 'PUT', req, req.headers, req.body);
 
     return res.status(HttpStatus.OK).json(data);
   }
@@ -291,13 +246,7 @@ export class AppGateway {
   async proxyUserDelete(@Req() req: any, @Res() res: Response) {
     const path = req.originalUrl.replace('/api/v1/user', '');
 
-    const data = await this.proxyRequest(
-      'userService',
-      path,
-      'DELETE',
-      req,
-      req.headers,
-    );
+    const data = await this.proxyRequest('userService', path, 'DELETE', req, req.headers);
 
     return res.status(HttpStatus.OK).json(data);
   }
@@ -314,13 +263,7 @@ export class AppGateway {
   async proxyOrderGet(@Req() req: any, @Res() res: Response) {
     const path = req.originalUrl.replace('/api/v1/order', '');
 
-    const data = await this.proxyRequest(
-      'orderService',
-      path,
-      'GET',
-      req,
-      req.headers,
-    );
+    const data = await this.proxyRequest('orderService', path, 'GET', req, req.headers);
 
     return res.status(HttpStatus.OK).json(data);
   }
@@ -333,14 +276,7 @@ export class AppGateway {
   async proxyOrderPost(@Req() req: any, @Res() res: Response) {
     const path = req.originalUrl.replace('/api/v1/order', '');
 
-    const data = await this.proxyRequest(
-      'orderService',
-      path,
-      'POST',
-      req,
-      req.headers,
-      req.body,
-    );
+    const data = await this.proxyRequest('orderService', path, 'POST', req, req.headers, req.body);
 
     return res.status(HttpStatus.OK).json(data);
   }
@@ -353,14 +289,7 @@ export class AppGateway {
   async proxyOrderPut(@Req() req: any, @Res() res: Response) {
     const path = req.originalUrl.replace('/api/v1/order', '');
 
-    const data = await this.proxyRequest(
-      'orderService',
-      path,
-      'PUT',
-      req,
-      req.headers,
-      req.body,
-    );
+    const data = await this.proxyRequest('orderService', path, 'PUT', req, req.headers, req.body);
 
     return res.status(HttpStatus.OK).json(data);
   }
@@ -373,13 +302,7 @@ export class AppGateway {
   async proxyOrderDelete(@Req() req: any, @Res() res: Response) {
     const path = req.originalUrl.replace('/api/v1/order', '');
 
-    const data = await this.proxyRequest(
-      'orderService',
-      path,
-      'DELETE',
-      req,
-      req.headers,
-    );
+    const data = await this.proxyRequest('orderService', path, 'DELETE', req, req.headers);
 
     return res.status(HttpStatus.OK).json(data);
   }
@@ -392,14 +315,7 @@ export class AppGateway {
   async proxyOrderPatch(@Req() req: any, @Res() res: Response) {
     const path = req.originalUrl.replace('/api/v1/order', '');
 
-    const data = await this.proxyRequest(
-      'orderService',
-      path,
-      'PATCH',
-      req,
-      req.headers,
-      req.body,
-    );
+    const data = await this.proxyRequest('orderService', path, 'PATCH', req, req.headers, req.body);
 
     return res.status(HttpStatus.OK).json(data);
   }
@@ -416,13 +332,7 @@ export class AppGateway {
   async proxyDriverGet(@Req() req: any, @Res() res: Response) {
     const path = req.originalUrl.replace('/api/v1/driver', '');
 
-    const data = await this.proxyRequest(
-      'dispatchService',
-      path,
-      'GET',
-      req,
-      req.headers,
-    );
+    const data = await this.proxyRequest('dispatchService', path, 'GET', req, req.headers);
 
     return res.status(HttpStatus.OK).json(data);
   }
@@ -441,7 +351,7 @@ export class AppGateway {
       'POST',
       req,
       req.headers,
-      req.body,
+      req.body
     );
 
     return res.status(HttpStatus.OK).json(data);
@@ -461,7 +371,7 @@ export class AppGateway {
       'PUT',
       req,
       req.headers,
-      req.body,
+      req.body
     );
 
     return res.status(HttpStatus.OK).json(data);
@@ -479,13 +389,7 @@ export class AppGateway {
   async proxyPaymentGet(@Req() req: any, @Res() res: Response) {
     const path = req.originalUrl.replace('/api/v1/payment', '');
 
-    const data = await this.proxyRequest(
-      'paymentService',
-      path,
-      'GET',
-      req,
-      req.headers,
-    );
+    const data = await this.proxyRequest('paymentService', path, 'GET', req, req.headers);
 
     return res.status(HttpStatus.OK).json(data);
   }
@@ -504,7 +408,7 @@ export class AppGateway {
       'POST',
       req,
       req.headers,
-      req.body,
+      req.body
     );
 
     return res.status(HttpStatus.OK).json(data);
@@ -518,14 +422,7 @@ export class AppGateway {
   async proxyPaymentPut(@Req() req: any, @Res() res: Response) {
     const path = req.originalUrl.replace('/api/v1/payment', '');
 
-    const data = await this.proxyRequest(
-      'paymentService',
-      path,
-      'PUT',
-      req,
-      req.headers,
-      req.body,
-    );
+    const data = await this.proxyRequest('paymentService', path, 'PUT', req, req.headers, req.body);
 
     return res.status(HttpStatus.OK).json(data);
   }
@@ -548,7 +445,7 @@ export class AppGateway {
       'POST',
       req,
       req.headers,
-      req.body,
+      req.body
     );
 
     return res.status(HttpStatus.OK).json(data);
@@ -566,13 +463,7 @@ export class AppGateway {
   async proxyStatisticsGet(@Req() req: any, @Res() res: Response) {
     const path = req.originalUrl.replace('/api/v1/statistics', '');
 
-    const data = await this.proxyRequest(
-      'statisticsService',
-      path,
-      'GET',
-      req,
-      req.headers,
-    );
+    const data = await this.proxyRequest('statisticsService', path, 'GET', req, req.headers);
 
     return res.status(HttpStatus.OK).json(data);
   }
@@ -591,7 +482,7 @@ export class AppGateway {
       'POST',
       req,
       req.headers,
-      req.body,
+      req.body
     );
 
     return res.status(HttpStatus.OK).json(data);

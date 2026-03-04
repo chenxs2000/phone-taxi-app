@@ -7,7 +7,9 @@ import { OrderType, CarType, OrderStatus } from './order.entity';
 function generateOrderNo(): string {
   const prefix = 'TAXI';
   const timestamp = Date.now();
-  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+  const random = Math.floor(Math.random() * 10000)
+    .toString()
+    .padStart(4, '0');
   return `${prefix}${timestamp}${random}`;
 }
 
@@ -145,10 +147,9 @@ export class Order {
 export const OrderSchema = SchemaFactory.createForClass(Order);
 
 // Hook: 生成订单号
-OrderSchema.pre('save', function(next) {
-  const order = this;
-  if (!order.orderNo) {
-    order.orderNo = generateOrderNo();
+OrderSchema.pre('save', function (next) {
+  if (!this.orderNo) {
+    this.orderNo = generateOrderNo();
   }
   next();
 });

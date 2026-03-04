@@ -29,7 +29,12 @@ export class AppModule {
     // 配置限流中间件
     consumer
       .apply(RateLimitMiddleware)
-      .exclude('api/v1/user/register', 'api/v1/user/login', 'api/v1/user/send-verify-code', 'health')
+      .exclude(
+        'api/v1/user/register',
+        'api/v1/user/login',
+        'api/v1/user/send-verify-code',
+        'health'
+      )
       .forRoutes('*');
   }
 }

@@ -24,15 +24,27 @@ describe('OrderService', () => {
             // 创建订单 - 返回带成功响应的订单
             createOrder: jest.fn().mockImplementation(async (dto: any) => {
               const orderId = `order-${orderIdCounter++}`;
-              const orderNo = `TAXI${Date.now()}${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+              const orderNo = `TAXI${Date.now()}${Math.floor(Math.random() * 10000)
+                .toString()
+                .padStart(4, '0')}`;
 
               // 检查是否为无效的订单类型
-              if (dto.orderType !== undefined && dto.orderType !== 1 && dto.orderType !== 2 && dto.orderType !== 3) {
+              if (
+                dto.orderType !== undefined &&
+                dto.orderType !== 1 &&
+                dto.orderType !== 2 &&
+                dto.orderType !== 3
+              ) {
                 throw new Error('无效的订单类型');
               }
 
               // 检查是否为无效的车型
-              if (dto.carType !== undefined && dto.carType !== 1 && dto.carType !== 2 && dto.carType !== 3) {
+              if (
+                dto.carType !== undefined &&
+                dto.carType !== 1 &&
+                dto.carType !== 2 &&
+                dto.carType !== 3
+              ) {
                 throw new Error('无效的车型');
               }
 
@@ -88,30 +100,41 @@ describe('OrderService', () => {
             }),
 
             // 获取用户订单列表
-            getUserOrders: jest.fn().mockImplementation(async (userId: string, status?: number, page: number = 1, pageSize: number = 10) => {
-              let filteredOrders = Array.from(mockOrders.values()).filter((order: any) => order.userId === userId);
+            getUserOrders: jest
+              .fn()
+              .mockImplementation(
+                async (
+                  userId: string,
+                  status?: number,
+                  page: number = 1,
+                  pageSize: number = 10
+                ) => {
+                  let filteredOrders = Array.from(mockOrders.values()).filter(
+                    (order: any) => order.userId === userId
+                  );
 
-              // 按状态筛选
-              if (status !== undefined) {
-                filteredOrders = filteredOrders.filter((order: any) => order.status === status);
-              }
+                  // 按状态筛选
+                  if (status !== undefined) {
+                    filteredOrders = filteredOrders.filter((order: any) => order.status === status);
+                  }
 
-              // 分页
-              const total = filteredOrders.length;
-              const start = (page - 1) * pageSize;
-              const list = filteredOrders.slice(start, start + pageSize);
+                  // 分页
+                  const total = filteredOrders.length;
+                  const start = (page - 1) * pageSize;
+                  const list = filteredOrders.slice(start, start + pageSize);
 
-              return {
-                success: true,
-                data: {
-                  list,
-                  total,
-                  page,
-                  pageSize,
-                },
-                message: '操作成功',
-              };
-            }),
+                  return {
+                    success: true,
+                    data: {
+                      list,
+                      total,
+                      page,
+                      pageSize,
+                    },
+                    message: '操作成功',
+                  };
+                }
+              ),
 
             // 获取用户订单详情
             getUserOrderDetail: jest.fn().mockImplementation(async (orderId: string) => {
@@ -155,117 +178,135 @@ describe('OrderService', () => {
             }),
 
             // 取消订单
-            cancelOrder: jest.fn().mockImplementation(async (orderId: string, cancelDto: any, cancelBy?: number, userId?: string) => {
-              const order = mockOrders.get(orderId);
-              if (!order) {
-                throw new Error('订单不存在');
-              }
+            cancelOrder: jest
+              .fn()
+              .mockImplementation(
+                async (orderId: string, cancelDto: any, cancelBy?: number, userId?: string) => {
+                  const order = mockOrders.get(orderId);
+                  if (!order) {
+                    throw new Error('订单不存在');
+                  }
 
-              // 已取消、已完成、进行中的订单不能取消
-              if (order.status === OrderStatus.CANCELLED ||
-                  order.status === OrderStatus.COMPLETED ||
-                  order.status === OrderStatus.IN_TRIP ||
-                  order.status === OrderStatus.ACCEPTING ||
-                  order.status === OrderStatus.ACCEPTED ||
-                  order.status === OrderStatus.ARRIVED ||
-                  order.status === OrderStatus.IN_PROGRESS) {
-                throw new Error('订单状态不允许此操作');
-              }
+                  // 已取消、已完成、进行中的订单不能取消
+                  if (
+                    order.status === OrderStatus.CANCELLED ||
+                    order.status === OrderStatus.COMPLETED ||
+                    order.status === OrderStatus.IN_TRIP ||
+                    order.status === OrderStatus.ACCEPTING ||
+                    order.status === OrderStatus.ACCEPTED ||
+                    order.status === OrderStatus.ARRIVED ||
+                    order.status === OrderStatus.IN_PROGRESS
+                  ) {
+                    throw new Error('订单状态不允许此操作');
+                  }
 
-              // 取消订单
-              const cancelledOrder = { ...order, status: OrderStatus.CANCELLED };
-              mockOrders.set(orderId, cancelledOrder);
+                  // 取消订单
+                  const cancelledOrder = { ...order, status: OrderStatus.CANCELLED };
+                  mockOrders.set(orderId, cancelledOrder);
 
-              return {
-                success: true,
-                data: {
-                  orderId,
-                  orderNo: order.orderNo,
-                  status: OrderStatus.CANCELLED,
-                  refundAmount: 20,
-                },
-                message: '操作成功',
-              };
-            }),
+                  return {
+                    success: true,
+                    data: {
+                      orderId,
+                      orderNo: order.orderNo,
+                      status: OrderStatus.CANCELLED,
+                      refundAmount: 20,
+                    },
+                    message: '操作成功',
+                  };
+                }
+              ),
 
             // 计算费用
-            calculateFare: jest.fn().mockImplementation(async (distance: number, duration: number, carType: number) => {
-              const baseFare = 20;
-              const distanceFare = (distance / 1000) * 2;
-              const timeFare = (duration / 60) * 1;
-              const carTypeMultiplier = carType === 2 ? 1.5 : carType === 3 ? 2 : 1;
-              const total = Math.ceil((baseFare + distanceFare + timeFare) * carTypeMultiplier);
+            calculateFare: jest
+              .fn()
+              .mockImplementation(async (distance: number, duration: number, carType: number) => {
+                const baseFare = 20;
+                const distanceFare = (distance / 1000) * 2;
+                const timeFare = (duration / 60) * 1;
+                const carTypeMultiplier = carType === 2 ? 1.5 : carType === 3 ? 2 : 1;
+                const total = Math.ceil((baseFare + distanceFare + timeFare) * carTypeMultiplier);
 
-              return total;
-            }),
+                return total;
+              }),
 
             // 订单评价
-            rateOrder: jest.fn().mockImplementation(async (orderId: string, rating: number, comment?: string) => {
-              const order = mockOrders.get(orderId);
-              if (!order) {
-                throw new Error('订单不存在');
-              }
+            rateOrder: jest
+              .fn()
+              .mockImplementation(async (orderId: string, rating: number, comment?: string) => {
+                const order = mockOrders.get(orderId);
+                if (!order) {
+                  throw new Error('订单不存在');
+                }
 
-              // 只有已完成状态可以评价
-              if (order.status !== OrderStatus.COMPLETED) {
-                throw new Error('只有完成订单可以评价');
-              }
+                // 只有已完成状态可以评价
+                if (order.status !== OrderStatus.COMPLETED) {
+                  throw new Error('只有完成订单可以评价');
+                }
 
-              if (rating < 1 || rating > 5) {
-                throw new Error('评分必须在1-5之间');
-              }
+                if (rating < 1 || rating > 5) {
+                  throw new Error('评分必须在1-5之间');
+                }
 
-              const updatedOrder = { ...order, rating, comment };
-              mockOrders.set(orderId, updatedOrder);
+                const updatedOrder = { ...order, rating, comment };
+                mockOrders.set(orderId, updatedOrder);
 
-              return {
-                success: true,
-                data: {
-                  orderId,
-                  orderNo: order.orderNo,
-                  rating,
-                  comment,
-                },
-                message: '操作成功',
-              };
-            }),
+                return {
+                  success: true,
+                  data: {
+                    orderId,
+                    orderNo: order.orderNo,
+                    rating,
+                    comment,
+                  },
+                  message: '操作成功',
+                };
+              }),
 
             // 更新订单状态
-            updateOrderStatus: jest.fn().mockImplementation(async (orderId: string, newStatus: number) => {
-              const order = mockOrders.get(orderId);
-              if (!order) {
-                throw new Error('订单不存在');
-              }
+            updateOrderStatus: jest
+              .fn()
+              .mockImplementation(async (orderId: string, newStatus: number) => {
+                const order = mockOrders.get(orderId);
+                if (!order) {
+                  throw new Error('订单不存在');
+                }
 
-              const oldStatus = order.status;
+                const oldStatus = order.status;
 
-              // 简单的状态流转验证
-              const validTransitions: Record<number, number[]> = {
-                [OrderStatus.PENDING_DISPATCH]: [OrderStatus.PENDING_ACCEPT, OrderStatus.CANCELLED],
-                [OrderStatus.PENDING_ACCEPT]: [OrderStatus.ACCEPTED, OrderStatus.CANCELLED],
-                [OrderStatus.ACCEPTED]: [OrderStatus.ARRIVED, OrderStatus.CANCELLED],
-                [OrderStatus.ARRIVED]: [OrderStatus.IN_PROGRESS, OrderStatus.CANCELLED],
-                [OrderStatus.IN_PROGRESS]: [OrderStatus.COMPLETED, OrderStatus.CANCELLED],
-              };
+                // 简单的状态流转验证
+                const validTransitions: Record<number, number[]> = {
+                  [OrderStatus.PENDING_DISPATCH]: [
+                    OrderStatus.PENDING_ACCEPT,
+                    OrderStatus.CANCELLED,
+                  ],
+                  [OrderStatus.PENDING_ACCEPT]: [OrderStatus.ACCEPTED, OrderStatus.CANCELLED],
+                  [OrderStatus.ACCEPTED]: [OrderStatus.ARRIVED, OrderStatus.CANCELLED],
+                  [OrderStatus.ARRIVED]: [OrderStatus.IN_PROGRESS, OrderStatus.CANCELLED],
+                  [OrderStatus.IN_PROGRESS]: [OrderStatus.COMPLETED, OrderStatus.CANCELLED],
+                };
 
-              if (!validTransitions[oldStatus] || !validTransitions[oldStatus].includes(newStatus)) {
-                throw new Error('非法的状态流转');
-              }
+                if (
+                  !validTransitions[oldStatus] ||
+                  !validTransitions[oldStatus].includes(newStatus)
+                ) {
+                  throw new Error('非法的状态流转');
+                }
 
-              const updatedOrder = { ...order, status: newStatus };
-              mockOrders.set(orderId, updatedOrder);
+                const updatedOrder = { ...order, status: newStatus };
+                mockOrders.set(orderId, updatedOrder);
 
-              return {
-                success: true,
-                data: {
-                  orderId,
-                  orderNo: order.orderNo,
-                  oldStatus,
-                  newStatus,
-                },
-                message: '操作成功',
-              };
-            }),
+                return {
+                  success: true,
+                  data: {
+                    orderId,
+                    orderNo: order.orderNo,
+                    oldStatus,
+                    newStatus,
+                  },
+                  message: '操作成功',
+                };
+              }),
           },
         },
       ],
@@ -477,7 +518,7 @@ describe('OrderService', () => {
       });
 
       const result = await service.updateOrder(createResult.data.orderId, {
-        pickup: { lat: 39.920, lng: 116.410, address: '北京市朝阳区新地址' },
+        pickup: { lat: 39.92, lng: 116.41, address: '北京市朝阳区新地址' },
       });
 
       expect(result).toBeDefined();
@@ -518,8 +559,9 @@ describe('OrderService', () => {
       await service.updateOrderStatus(createResult.data.orderId, OrderStatus.IN_PROGRESS);
       await service.updateOrderStatus(createResult.data.orderId, OrderStatus.COMPLETED);
 
-      await expect(service.updateOrder(createResult.data.orderId, { carType: 2 }))
-        .rejects.toThrow('订单状态不允许修改');
+      await expect(service.updateOrder(createResult.data.orderId, { carType: 2 })).rejects.toThrow(
+        '订单状态不允许修改'
+      );
     });
 
     it('应该拒绝修改进行中的订单', async () => {
@@ -537,8 +579,9 @@ describe('OrderService', () => {
       await service.updateOrderStatus(createResult.data.orderId, OrderStatus.ARRIVED);
       await service.updateOrderStatus(createResult.data.orderId, OrderStatus.IN_PROGRESS);
 
-      await expect(service.updateOrder(createResult.data.orderId, { carType: 2 }))
-        .rejects.toThrow('订单状态不允许修改');
+      await expect(service.updateOrder(createResult.data.orderId, { carType: 2 })).rejects.toThrow(
+        '订单状态不允许修改'
+      );
     });
   });
 
@@ -552,7 +595,12 @@ describe('OrderService', () => {
         destination: { lat: 40.015, lng: 116.504, address: '北京市海淀区' },
       });
 
-      const result = await service.cancelOrder(createResult.data.orderId, { reason: '用户取消' }, 1, 'user-123');
+      const result = await service.cancelOrder(
+        createResult.data.orderId,
+        { reason: '用户取消' },
+        1,
+        'user-123'
+      );
 
       expect(result).toBeDefined();
       expect(result.success).toBe(true);
@@ -575,8 +623,9 @@ describe('OrderService', () => {
       await service.updateOrderStatus(createResult.data.orderId, OrderStatus.IN_PROGRESS);
       await service.updateOrderStatus(createResult.data.orderId, OrderStatus.COMPLETED);
 
-      await expect(service.cancelOrder(createResult.data.orderId, { reason: '用户取消' }, 1, 'user-123'))
-        .rejects.toThrow('订单状态不允许此操作');
+      await expect(
+        service.cancelOrder(createResult.data.orderId, { reason: '用户取消' }, 1, 'user-123')
+      ).rejects.toThrow('订单状态不允许此操作');
     });
 
     it('应该拒绝取消进行中的订单', async () => {
@@ -594,8 +643,9 @@ describe('OrderService', () => {
       await service.updateOrderStatus(createResult.data.orderId, OrderStatus.ARRIVED);
       await service.updateOrderStatus(createResult.data.orderId, OrderStatus.IN_PROGRESS);
 
-      await expect(service.cancelOrder(createResult.data.orderId, { reason: '用户取消' }, 1, 'user-123'))
-        .rejects.toThrow('订单状态不允许此操作');
+      await expect(
+        service.cancelOrder(createResult.data.orderId, { reason: '用户取消' }, 1, 'user-123')
+      ).rejects.toThrow('订单状态不允许此操作');
     });
   });
 
@@ -632,23 +682,38 @@ describe('OrderService', () => {
       });
 
       // 待派单 -> 待接单
-      const result1 = await service.updateOrderStatus(createResult.data.orderId, OrderStatus.PENDING_ACCEPT);
+      const result1 = await service.updateOrderStatus(
+        createResult.data.orderId,
+        OrderStatus.PENDING_ACCEPT
+      );
       expect(result1.data.newStatus).toBe(OrderStatus.PENDING_ACCEPT);
 
       // 待接单 -> 已接单
-      const result2 = await service.updateOrderStatus(createResult.data.orderId, OrderStatus.ACCEPTED);
+      const result2 = await service.updateOrderStatus(
+        createResult.data.orderId,
+        OrderStatus.ACCEPTED
+      );
       expect(result2.data.newStatus).toBe(OrderStatus.ACCEPTED);
 
       // 已接单 -> 已到达
-      const result3 = await service.updateOrderStatus(createResult.data.orderId, OrderStatus.ARRIVED);
+      const result3 = await service.updateOrderStatus(
+        createResult.data.orderId,
+        OrderStatus.ARRIVED
+      );
       expect(result3.data.newStatus).toBe(OrderStatus.ARRIVED);
 
       // 已到达 -> 进行中
-      const result4 = await service.updateOrderStatus(createResult.data.orderId, OrderStatus.IN_PROGRESS);
+      const result4 = await service.updateOrderStatus(
+        createResult.data.orderId,
+        OrderStatus.IN_PROGRESS
+      );
       expect(result4.data.newStatus).toBe(OrderStatus.IN_PROGRESS);
 
       // 进行中 -> 已完成
-      const result5 = await service.updateOrderStatus(createResult.data.orderId, OrderStatus.COMPLETED);
+      const result5 = await service.updateOrderStatus(
+        createResult.data.orderId,
+        OrderStatus.COMPLETED
+      );
       expect(result5.data.newStatus).toBe(OrderStatus.COMPLETED);
     });
 
@@ -662,8 +727,9 @@ describe('OrderService', () => {
       });
 
       // 尝试从待派单直接跳到已完成（非法）
-      await expect(service.updateOrderStatus(createResult.data.orderId, OrderStatus.COMPLETED))
-        .rejects.toThrow('非法的状态流转');
+      await expect(
+        service.updateOrderStatus(createResult.data.orderId, OrderStatus.COMPLETED)
+      ).rejects.toThrow('非法的状态流转');
     });
   });
 
@@ -701,8 +767,9 @@ describe('OrderService', () => {
         destination: { lat: 40.015, lng: 116.504, address: '北京市海淀区' },
       });
 
-      await expect(service.rateOrder(createResult.data.orderId, 5, '司机服务很好'))
-        .rejects.toThrow('只有完成订单可以评价');
+      await expect(service.rateOrder(createResult.data.orderId, 5, '司机服务很好')).rejects.toThrow(
+        '只有完成订单可以评价'
+      );
     });
 
     it('应该拒绝无效评分', async () => {
@@ -721,8 +788,9 @@ describe('OrderService', () => {
       await service.updateOrderStatus(createResult.data.orderId, OrderStatus.IN_PROGRESS);
       await service.updateOrderStatus(createResult.data.orderId, OrderStatus.COMPLETED);
 
-      await expect(service.rateOrder(createResult.data.orderId, 6, '无效评分'))
-        .rejects.toThrow('评分必须在1-5之间');
+      await expect(service.rateOrder(createResult.data.orderId, 6, '无效评分')).rejects.toThrow(
+        '评分必须在1-5之间'
+      );
     });
   });
 

@@ -6,9 +6,7 @@ import { DailyStatistics, DailyStatisticsSchema } from './entities/daily-statist
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: DailyStatistics.name, schema: DailyStatisticsSchema },
-    ]),
+    MongooseModule.forFeature([{ name: DailyStatistics.name, schema: DailyStatisticsSchema }]),
   ],
   controllers: [StatisticsController],
   providers: [StatisticsService],

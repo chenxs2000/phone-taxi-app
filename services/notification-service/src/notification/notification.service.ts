@@ -1,7 +1,12 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Notification, NotificationStatus, NotificationType, NotificationChannel } from './entities/notification.entity';
+import {
+  Notification,
+  NotificationStatus,
+  NotificationType,
+  NotificationChannel,
+} from './entities/notification.entity';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { SendNotificationDto } from './dto/send-notification.dto';
@@ -9,9 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class NotificationService {
-  constructor(
-    @InjectModel(Notification.name) private notificationModel: Model<Notification>,
-  ) {}
+  constructor(@InjectModel(Notification.name) private notificationModel: Model<Notification>) {}
 
   async sendNotification(dto: SendNotificationDto) {
     const notifications = [];
@@ -168,7 +171,7 @@ export class NotificationService {
   async markAllAsRead(userId: string) {
     const result = await this.notificationModel.updateMany(
       { userId, status: { $in: [NotificationStatus.SENT, NotificationStatus.PENDING] } },
-      { status: NotificationStatus.READ, readAt: new Date() },
+      { status: NotificationStatus.READ, readAt: new Date() }
     );
     return {
       success: true,

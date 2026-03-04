@@ -2,7 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotificationService } from './notification.service';
 import { getModelToken } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Notification, NotificationStatus, NotificationType, NotificationChannel } from './entities/notification.entity';
+import {
+  Notification,
+  NotificationStatus,
+  NotificationType,
+  NotificationChannel,
+} from './entities/notification.entity';
 import { NotFoundException } from '@nestjs/common';
 
 describe('NotificationService', () => {
@@ -24,13 +29,13 @@ describe('NotificationService', () => {
     content: '您有新的订单',
     status: NotificationStatus.PENDING,
     ...overrides,
-    save: jest.fn().mockImplementation(function() {
+    save: jest.fn().mockImplementation(function () {
       return Promise.resolve(this);
     }),
   });
 
   // 创建一个模拟的 Model 构造函数
-  const MockModel = jest.fn().mockImplementation((dto) => {
+  const MockModel = jest.fn().mockImplementation(dto => {
     return {
       ...createMockNotification(),
       ...dto,
