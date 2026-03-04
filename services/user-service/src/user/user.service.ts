@@ -18,6 +18,7 @@ import {
   errorResponse,
 } from '../../../shared/utils';
 import { ERROR_CODES, REDIS, MESSAGES } from '../../../shared/constants';
+import * as jwt from 'jsonwebtoken';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -213,7 +214,6 @@ export class UserService {
    * 生成 JWT Token
    */
   private generateToken(userId: string): string {
-    const jwt = require('jsonwebtoken') as any;
     const secret = process.env.JWT_SECRET || 'phone-taxi-app-secret-key';
     const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
     return jwt.sign({ userId }, secret, { expiresIn });
