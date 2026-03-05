@@ -414,16 +414,6 @@ jobs:
           pass: ${{ needs.unit-tests.result == 'success' && needs.integration-tests.result == 'success' }}
           fail: ${{ needs.unit-tests.result == 'failure' || needs.integration-tests.result == 'failure' }}
 
-      - name: 创建状态徽章
-        if: always()
-        uses: actions/badge-generator@v1
-        with:
-          label: build
-          status: ${{ needs.build.result == 'success' && 'success' || 'failure' }}
-          named-logo: nestjs
-          color: 42b883
-        continue-on-error: true
-
       - name: 更新 GitHub 状态
         if: always()
         uses: Sibz/github-status-action@v1.0.0
