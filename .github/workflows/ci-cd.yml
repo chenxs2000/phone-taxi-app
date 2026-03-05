@@ -255,22 +255,6 @@ jobs:
             type=ref,event=branch
             type=semver,pattern={{version}}
             type=sha,prefix=
-        outputs:
-          tags: ${{ toJson(steps.meta.outputs.tags) }}
-
-      - name: 构建并推送 Docker 镜像
-        uses: docker/build-push-action@v5
-        with:
-          context: ./${{ matrix.service.path }}
-          file: ./${{ matrix.service.path }}/Dockerfile
-          push: true
-          tags: ${{ toJson(steps.meta.outputs.tags) }}
-          labels: ${{ toJson(steps.meta.outputs.labels) }}
-          cache-from: type=gha,scope=buildkit
-          cache-to: type=gha,mode=max
-          platforms: linux/amd64,linux/arm64
-          provenance: true
-          builder: ${{ steps.meta.outputs.builder }}
 
       - name: 生成镜像清单
         run: |
