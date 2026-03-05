@@ -281,14 +281,6 @@ jobs:
           echo "部署时间：$(date -u +%Y-%m-%d_%H:%M:%S)"
           echo "部署脚本执行完成"
 
-      - name: 创建部署状态
-        if: always()
-        uses: actions/create-deployment@v1
-        with:
-          token: ${{ github.token }}
-          environment: ${{ env.name }}
-          status: ${{ job.status }}
-
       - name: 通知部署结果
         if: always()
         uses: 8398a7/action-slack@v3
@@ -328,14 +320,6 @@ jobs:
           curl -f ${{ env.PRODUCTION_URL }}/health
           curl -f ${{ env.PRODUCTION_URL }}/api/health
           echo "冒烟测试完成"
-
-      - name: 创建部署状态
-        if: always()
-        uses: actions/create-deployment@v1
-        with:
-          token: ${{ github.token }}
-          environment: ${{ env.name }}
-          status: ${{ job.status }}
 
       - name: 通知部署结果
         if: always()
@@ -396,9 +380,10 @@ jobs:
           output: 'trivy-results.sarif'
 
       - name: 上传安全扫描报告
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: trivy-results.sarif
+        continue-on-error: true
 
       - name: 运行 Snyk 依赖扫描
         uses: snyk/actions/node@master
