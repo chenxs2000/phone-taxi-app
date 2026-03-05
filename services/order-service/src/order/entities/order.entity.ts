@@ -1,7 +1,30 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, ObjectId as MObjectId } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
-import { OrderType, CarType, OrderStatus } from './order.entity';
+
+// 枚举定义
+export enum OrderType {
+  INSTANT = 1, // 即时
+  BOOKING = 2, // 预约
+  URGENT = 3, // 紧急
+}
+
+export enum CarType {
+  NORMAL = 1, // 普通
+  COMFORT = 2, // 舒适
+  ACCESSIBLE = 3, // 无障碍
+}
+
+export enum OrderStatus {
+  PENDING_DISPATCH = 1, // 待派单
+  PENDING_ACCEPT = 2, // 待接单
+  ACCEPTED = 3, // 已接单
+  ARRIVED = 4, // 已到达
+  IN_PROGRESS = 5, // 行程中
+  COMPLETED = 6, // 已完成
+  CANCELLED = 7, // 已取消
+  TIMEOUT = 8, // 超时
+}
 
 // 工具函数
 function generateOrderNo(): string {

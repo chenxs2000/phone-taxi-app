@@ -54,6 +54,10 @@ const ERROR_CODES = {
   NOT_FOUND: 404,
   CONFLICT: 409,
   UNAUTHORIZED: 401,
+  ORDER_NOT_FOUND: 1001,
+  ORDER_STATUS_ERROR: 1002,
+  ORDER_CANCELLED: 1003,
+  INVALID_PARAMS: 1004,
 };
 
 const MESSAGES = {
@@ -85,7 +89,7 @@ export class OrderService {
       bookingTime: bookingTime ? new Date(bookingTime) : undefined,
       orderStatus: OrderStatus.PENDING_DISPATCH,
       fare: {
-        estimated: calculateEstimatedFare(this.calculateDistance(pickup, destination), 1800),
+        estimated: calculateEstimatedFare(this.calculateDistance(pickup, destination), 1800, carType || CarType.NORMAL),
       },
     });
 
@@ -216,7 +220,7 @@ export class OrderService {
       order.pickup!,
       updateOrderDto.destination || order.destination
     );
-    order.fare!.estimated = calculateEstimatedFare(distance, 1800);
+    order.fare!.estimated = calculateEstimatedFare(distance, 1800, order.carType || CarType.NORMAL);
 
     await order.save();
 
@@ -295,7 +299,7 @@ export class OrderService {
     order.statusLogs.push({
       oldStatus,
       newStatus,
-      operatorId,
+      operatorId: operatorId ? new this.orderModel().db.mongo.ObjectId(operatorId) : undefined,
       operatorType,
       remark,
       createdAt: new Date(),
@@ -323,14 +327,15 @@ export class OrderService {
     }
 
     // 计算实际费用
-    const actualDistance = distance || order.distance;
-    const actualDuration = duration || order.duration;
+    const actualDistance = distance || order.distance || 0;
+    const actualDuration = duration || order.duration || 0;
 
     const baseFare = 13;
     const distanceFare = actualDistance * 0.0023; // 每米 2.3元
     const timeFare = actualDuration * 0.0083; // 每秒 0.5元
 
     order.fare = {
+      estimated: order.fare?.estimated || 0,
       base: baseFare,
       distance: distanceFare,
       time: timeFare,

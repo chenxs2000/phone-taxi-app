@@ -2,7 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { successResponse } from '../../../shared/utils';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -28,7 +27,8 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
 
-  SwaggerModule.setup('api', app, config);
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
 
   // 启用 CORS
   app.enableCors();
