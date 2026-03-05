@@ -4,9 +4,19 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 
 // 临时解决方案：在本地定义工具函数
+function successResponse(code: number, data: any, message?: string) {
+  return {
+    success: true,
+    code,
+    data,
+    message: message || '操作成功',
+  };
+}
+
 function errorResponse(code: number, message: string) {
   return {
     success: false,
+    code,
     error: {
       code,
       message,

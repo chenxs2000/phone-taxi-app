@@ -18,6 +18,7 @@ import { LoginDto } from './dto/login.dto';
 function successResponse(data: any, message?: string) {
   return {
     success: true,
+    code: 200,
     data,
     message: message || '操作成功',
   };
