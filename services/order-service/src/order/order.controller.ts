@@ -61,11 +61,13 @@ export class OrderController {
   @ApiResponse({ status: 200, description: '查询成功' })
   async getUserOrders(
     @Param('userId') userId: string,
-    @Body('status') status?: string,
-    @Body('page') page?: number,
-    @Body('pageSize') pageSize?: number
+    @Query('status') status?: string,
+    @Query('page') page?: number,
+    @Query('pageSize') pageSize?: number
   ) {
-    return await this.orderService.getUserOrders(userId, status, page, pageSize);
+    // 将 status 字符串转换为 OrderStatus
+    const orderStatus = status ? parseInt(status) as any : undefined;
+    return await this.orderService.getUserOrders(userId, orderStatus, page, pageSize);
   }
 
   /**

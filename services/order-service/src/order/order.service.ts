@@ -5,7 +5,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Order, OrderDocument } from './entities/order.entity';
 import { OrderStatus, OrderType, CarType } from './entities/order.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -299,7 +299,7 @@ export class OrderService {
     order.statusLogs.push({
       oldStatus,
       newStatus,
-      operatorId: operatorId ? new this.orderModel().db.mongo.ObjectId(operatorId) : undefined,
+      operatorId: operatorId ? new Types.ObjectId(operatorId) : undefined,
       operatorType,
       remark,
       createdAt: new Date(),
@@ -471,20 +471,15 @@ export class OrderService {
    */
   private isValidStatusTransition(oldStatus: OrderStatus, newStatus: OrderStatus): boolean {
     // 定义允许的状态流转
-    const validTransitions: Record<OrderStatus, OrderStatus[]> = {
-      [OrderStatus.PENDING_DISPATCH]: [
-        OrderStatus.PENDING_ACCEPT,
-        OrderStatus.CANCELLED,
-        OrderStatus.TIMEOUT,
-      ],
-      [OrderStatus.PENDING_ACCEPT]: [
-        OrderStatus.ACCEPTED,
-        OrderStatus.CANCELLED,
-        OrderStatus.TIMEOUT,
-      ],
-      [OrderStatus.ACCEPTED]: [OrderStatus.ARRIVED, OrderStatus.CANCELLED],
-      [OrderStatus.ARRIVED]: [OrderStatus.IN_PROGRESS, OrderStatus.CANCELLED],
-      [OrderStatus.IN_PROGRESS]: [OrderStatus.COMPLETED, OrderStatus.CANCELLED],
+    const validTransitions: Record<number, OrderStatus[]> = {
+      1: [2, 7, 8], // PENDING_DISPATCH -> PENDING_ACCEPT, CANCELLED, TIMEOUT
+      2: [3, 7, 8], // PENDING_ACCEPT -> ACCEPTED, CANCELLED, TIMEOUT
+      3: [4, 7], // ACCEPTED -> ARRIVED, CANCELLED
+      4: [5, 7], // ARRIVED -> IN_PROGRESS, CANCELLED
+      5: [6, 7], // IN_PROGRESS -> COMPLETED, CANCELLED
+      6: [], // COMPLETED -> 无后续状态
+      7: [], // CANCELLED -> 无后续状态
+      8: [], // TIMEOUT -> 无后续状态
     };
 
     if (!validTransitions[oldStatus]) {
