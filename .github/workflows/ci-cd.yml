@@ -289,6 +289,7 @@ jobs:
           text: "部署到测试环境，分支：${{ github.ref_name }}，提交：${{ github.sha }}"
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+        continue-on-error: true
 
   # ==================== 阶段 7: 部署到生产环境 ====================
   deploy-production:
@@ -330,6 +331,7 @@ jobs:
           text: "部署到生产环境，分支：${{ github.ref_name }}，提交：${{ github.sha }}，链接：${{ env.PRODUCTION_URL }}"
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+        continue-on-error: true
 
   # ==================== 阶段 8: 性能测试 ====================
   performance-tests:
