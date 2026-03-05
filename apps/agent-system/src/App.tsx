@@ -3,6 +3,7 @@ import { ConfigProvider, theme } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import { AppLayout } from './components/layout/AppLayout';
 import { LoginPage } from './pages/LoginPage';
+import { TestPage } from './pages/TestPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { OrdersPage } from './pages/OrdersPage';
 import { OrderDetailPage } from './pages/OrderDetailPage';
@@ -20,6 +21,9 @@ function App() {
     <ConfigProvider theme={appTheme} locale={zhCN}>
       <BrowserRouter>
         <Routes>
+          {/* 测试路由 */}
+          <Route path="/test" element={<TestPage />} />
+
           {/* 公开路由 */}
           <Route path="/login" element={<LoginPage />} />
 
