@@ -5,7 +5,8 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model } from 'mongoose';
+import mongoose from 'mongoose';
 import { Order, OrderDocument } from './entities/order.entity';
 import { OrderStatus, OrderType, CarType } from './entities/order.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
