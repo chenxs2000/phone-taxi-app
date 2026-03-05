@@ -6,7 +6,6 @@ import {
   Body,
   Param,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -14,8 +13,15 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginDto } from './dto/login.dto';
-import { TransformInterceptor } from '@nestjs/common';
-import { successResponse } from '../../../shared/utils';
+
+// 临时解决方案：在本地定义 successResponse
+function successResponse(data: any, message?: string) {
+  return {
+    success: true,
+    data,
+    message: message || '操作成功',
+  };
+}
 
 @ApiTags('用户管理')
 @Controller('user')

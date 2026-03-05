@@ -2,7 +2,25 @@ import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Observable } from 'rxjs';
-import { errorResponse, ERROR_CODES, MESSAGES } from '../../../shared/utils';
+
+// 临时解决方案：在本地定义工具函数和常量
+function errorResponse(code: number, message: string) {
+  return {
+    success: false,
+    error: {
+      code,
+      message,
+    },
+  };
+}
+
+const ERROR_CODES = {
+  UNAUTHORIZED: 1006,
+};
+
+const MESSAGES = {
+  UNAUTHORIZED: '未授权访问',
+};
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {

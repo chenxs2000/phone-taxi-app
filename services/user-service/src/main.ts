@@ -28,7 +28,8 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
 
-  SwaggerModule.setup('api', app, config);
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
 
   // 启用 CORS
   app.enableCors();

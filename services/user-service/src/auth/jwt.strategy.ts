@@ -2,7 +2,21 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
-import { errorResponse, ERROR_CODES } from '../../../shared/utils';
+
+// 临时解决方案：在本地定义工具函数
+function errorResponse(code: number, message: string) {
+  return {
+    success: false,
+    error: {
+      code,
+      message,
+    },
+  };
+}
+
+const ERROR_CODES = {
+  UNAUTHORIZED: 1006,
+};
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {

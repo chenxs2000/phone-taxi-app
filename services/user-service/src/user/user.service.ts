@@ -11,15 +11,47 @@ import { UserStatus } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginDto } from './dto/login.dto';
-import {
-  generateVerifyCode,
-  maskPhone,
-  successResponse,
-  errorResponse,
-} from '../../../shared/utils';
-import { ERROR_CODES, REDIS, MESSAGES } from '../../../shared/constants';
 import * as jwt from 'jsonwebtoken';
 import * as crypto from 'crypto';
+
+// 临时解决方案：在本地定义工具函数和常量
+function generateVerifyCode(): string {
+  return Math.random().toString().substring(2, 8);
+}
+
+function maskPhone(phone: string): string {
+  return phone.substring(0, 3) + '****' + phone.substring(7);
+}
+
+function successResponse(data: any, message?: string) {
+  return {
+    success: true,
+    data,
+    message: message || '操作成功',
+  };
+}
+
+function errorResponse(code: number, message: string) {
+  return {
+    success: false,
+    error: {
+      code,
+      message,
+    },
+  };
+}
+
+const ERROR_CODES = {
+  INVALID_PARAMS: 1001,
+  USER_NOT_FOUND: 1002,
+  USER_DISABLED: 1003,
+  VERIFICATION_CODE_EXPIRED: 1004,
+  VERIFICATION_CODE_INVALID: 1005,
+};
+
+const MESSAGES = {
+  PHONE_EMPTY: '手机号不能为空',
+};
 
 @Injectable()
 export class UserService {
@@ -52,7 +84,6 @@ export class UserService {
       gender: createUserDto.gender,
       birthday: createUserDto.birthday ? new Date(createUserDto.birthday) : undefined,
       registerChannel: createUserDto.registerChannel,
-      registerSource: createUserDto.registerSource,
       status: UserStatus.NORMAL,
       totalOrders: 0,
       totalAmount: 0,
@@ -202,7 +233,7 @@ export class UserService {
     if (!birthday) return false;
     const birthDate = new Date(birthday);
     const today = new Date();
-    const age = today.getFullYear() - birthDate.getFullYear();
+    let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
       age--;
