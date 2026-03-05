@@ -2,6 +2,7 @@ import { Layout } from 'antd';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { AppHeader } from './Header';
+import { useAuthStore } from '../../services/store';
 import './AppLayout.css';
 
 const { Content } = Layout;
