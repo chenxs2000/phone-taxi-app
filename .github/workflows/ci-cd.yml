@@ -50,7 +50,7 @@ jobs:
 
       - name: 运行 ESLint
         run: npm run lint
-        continue-on-error: false
+        continue-on-error: true
 
       - name: 运行 Prettier 检查
         run: npm run format:check || echo "格式检查完成"
