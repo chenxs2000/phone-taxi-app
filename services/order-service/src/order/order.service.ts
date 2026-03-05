@@ -299,7 +299,7 @@ export class OrderService {
     order.statusLogs.push({
       oldStatus,
       newStatus,
-      operatorId: operatorId ? new Types.ObjectId(operatorId) : undefined,
+      operatorId: operatorId ? new mongoose.Types.ObjectId(operatorId) : undefined,
       operatorType,
       remark,
       createdAt: new Date(),
