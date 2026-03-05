@@ -422,6 +422,7 @@ jobs:
           status: ${{ needs.build.result == 'success' && 'success' || 'failure' }}
           named-logo: nestjs
           color: 42b883
+        continue-on-error: true
 
       - name: 更新 GitHub 状态
         if: always()
@@ -434,3 +435,4 @@ jobs:
           STATE: ${{ needs.build.result == 'success' && 'CI/CD 流水线成功' || 'CI/CD 流水线失败' }}
           DESCRIPTION: ${{ needs.build.result == 'success' && 'CI/CD 流水线成功' || 'CI/CD 流水线失败' }}
           TARGET_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        continue-on-error: true
