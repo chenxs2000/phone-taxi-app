@@ -408,12 +408,6 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: 生成测试摘要
-        uses: test-summary/action@v2
-        with:
-          pass: ${{ needs.unit-tests.result == 'success' && needs.integration-tests.result == 'success' }}
-          fail: ${{ needs.unit-tests.result == 'failure' || needs.integration-tests.result == 'failure' }}
-
       - name: 更新 GitHub 状态
         if: always()
         uses: Sibz/github-status-action@v1.0.0
