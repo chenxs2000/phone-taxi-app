@@ -1,6 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, ObjectId as MObjectId } from 'mongoose';
+import { Document, ObjectId, Types } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
+
+// 类型别名
+type MObjectId = Types.ObjectId;
 
 // 枚举定义
 export enum OrderType {
@@ -36,7 +39,7 @@ function generateOrderNo(): string {
   return `${prefix}${timestamp}${random}`;
 }
 
-export type OrderDocument = Order & Document;
+export type OrderDocument = Order & Document<unknown, {}, Record<string, unknown>, { _id: Types.ObjectId }>;
 
 @Schema({ timestamps: true, collection: 'orders' })
 export class Order {
